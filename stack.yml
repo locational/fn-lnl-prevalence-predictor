@@ -1,0 +1,14 @@
+provider:
+  name: faas
+  gateway: https://faas.srv.disarm.io
+functions:
+  fn-prevalence-predictor:
+    lang: dockerfile
+    handler: ./fn-prevalence-predictor
+    image: disarm/fn-prevalence-predictor:0.0.1
+    environment:
+      exec_timeout: 60
+      write_timeout: 70
+      read_timeout: 70
+      combine_output: false
+      # write_debug: true
