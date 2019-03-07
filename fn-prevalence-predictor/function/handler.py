@@ -2,15 +2,14 @@ import json
 import sys
 import pandas as pd
 import numpy as np
-from disarmgears.chain_drives.prototypes import adaptive_prototype_0
-from disarmgears.chain_drives.prototypes import sentinel
+from disarm_gears.chain_drives.prototypes import adaptive_prototype_0
 
 def handle(req):
     """handle a request to the function
     Args:
         req (str): request body
     """
-    # redirecting sstdout 
+    # redirecting sstdout
     original = sys.stdout
     sys.stdout = open('file', 'w')
 
@@ -26,10 +25,11 @@ def handle(req):
     threshold = json_data['request_parameters']['threshold']
 
     response = adaptive_prototype_0(x_frame=x_frame, x_id=x_id,
-				    x_coords=x_coords,
-				    n_positive=n_positive,
-				    n_trials=n_trials,
-				    threshold=threshold,
-				    covariate_layers=None)
+                                    x_coords=x_coords,
+                                    n_positive=n_positive,
+                                    n_trials=n_trials,
+                                    threshold=threshold,
+                                    covariate_layers=None)
     sys.stdout = original
+    print(response)
     print(json.dumps(response), end='')
