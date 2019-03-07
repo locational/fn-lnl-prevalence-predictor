@@ -28,8 +28,7 @@ def handle(req):
                                     x_coords=x_coords,
                                     n_positive=n_positive,
                                     n_trials=n_trials,
-                                    threshold=threshold,
-                                    covariate_layers=None)
+                                    threshold=threshold)
     sys.stdout = original
     print(response)
     print(json.dumps(response), end='')
