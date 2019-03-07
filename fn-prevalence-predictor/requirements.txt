@@ -1,4 +1,4 @@
-git+git://github.com/disarm-platform/disarm-gears.git@master#egg=disarm-gears
+git+git://github.com/disarm-platform/disarm-gears.git@master
 numpy
 matplotlib
 pandas
