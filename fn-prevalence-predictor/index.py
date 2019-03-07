@@ -23,8 +23,8 @@ def handle_success(content):
 
 if __name__ == "__main__":
     try:
-        # st = get_stdin()
-        st = ''
+        st = get_stdin()
+        #st = ''
         ret = handler.handle(st)
         handle_success(ret)
     except:
