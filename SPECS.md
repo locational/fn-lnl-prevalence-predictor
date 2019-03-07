@@ -25,6 +25,11 @@ JSON object containing:
 - maximum size of..
 
 ## Response
+JSON object containing
 
+`estimates` - a JSON containing
+    `exceedance_prob` - array of probabilities that prevlance exceeds the `threshold`
+    `id` - array of unique IDs of prediction location
+    `category` - hotspot category (1/0 classification where locations are classed as 1 if `exceedance_prob` >= 0.5)
 
 
