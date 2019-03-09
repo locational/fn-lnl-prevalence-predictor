@@ -3,7 +3,7 @@ Function to predict probability of infection (prevalence) using georeferenced bi
 
 ## Parameters
 
-JSON object containing:
+A nested JSON object containing:
 
 `region_definition` - a JSON containing the following fields:
 - `lng` - array of longitudes of locations to predict to
