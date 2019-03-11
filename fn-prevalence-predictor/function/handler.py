@@ -14,7 +14,7 @@ def run_function(params):
     region_data = pd.DataFrame(region_definition)
     train_data = pd.DataFrame(train_data)
 
-    #
+    # Prepare parameters for function
     x_frame = np.array(region_data[['lng', 'lat']])
     x_id = np.array(region_data['id'])
     x_coords = np.array(train_data[['lng', 'lat']])
