@@ -24,4 +24,5 @@ def run_function(params):
                                     n_positive=n_positive,
                                     n_trials=n_trials,
                                     threshold=threshold)#, covariate_layers=None)
+    sys.stderr.write("DEBUGGING response: " + str(response))                                    
     return response
