@@ -1,8 +1,0 @@
-git+git://github.com/disarm-platform/disarm-gears.git@master
-numpy
-matplotlib
-pandas
-sklearn
-pygam
-descartes
-requests
