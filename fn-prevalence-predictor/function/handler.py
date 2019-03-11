@@ -11,6 +11,9 @@ def run_function(params):
     """
     region_data = pd.DataFrame(params['region_definition'])
     train_data = pd.DataFrame(params['train_data'])
+    sys.stderr.write("DEBUGGING region_data: " + str(region_data))                                    
+    sys.stderr.write("DEBUGGING train_data: " + str(train_data))                                    
+
 
     x_frame = np.array(region_data[['lng', 'lat']])
     x_id = np.array(region_data['id'])
