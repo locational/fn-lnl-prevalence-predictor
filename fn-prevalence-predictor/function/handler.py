@@ -4,15 +4,11 @@ import pandas as pd
 import numpy as np
 from disarm_gears.chain_drives.prototypes import adaptive_prototype_0
 
-def handle(req):
+def run_function(req):
     """handle a request to the function
     Args:
         req (str): request body
     """
-    # redirecting sstdout
-    original = sys.stdout
-    sys.stdout = open('file', 'w')
-
     json_data = json.loads(req)
     region_data = pd.DataFrame(json_data['region_definition'])
     train_data = pd.DataFrame(json_data['train_data'])
@@ -29,6 +25,4 @@ def handle(req):
                                     n_positive=n_positive,
                                     n_trials=n_trials,
                                     threshold=threshold)#, covariate_layers=None)
-    sys.stdout = original
-    print(response)
-    print(json.dumps(response), end='')
+    return response
