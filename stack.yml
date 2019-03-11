@@ -7,8 +7,8 @@ functions:
     handler: ./fn-prevalence-predictor
     image: disarm/fn-prevalence-predictor:0.2.0
     environment:
-      exec_timeout: 120
-      write_timeout: 130
-      read_timeout: 130
+      exec_timeout: 180
+      write_timeout: 190
+      read_timeout: 190
       combine_output: false
       # write_debug: true
