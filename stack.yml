@@ -5,7 +5,7 @@ functions:
   fn-prevalence-predictor:
     lang: dockerfile
     handler: ./fn-prevalence-predictor
-    image: disarm/fn-prevalence-predictor:0.1.6
+    image: disarm/fn-prevalence-predictor:0.1.7
     environment:
       exec_timeout: 500
       write_timeout: 510

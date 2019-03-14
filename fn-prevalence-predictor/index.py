@@ -21,7 +21,7 @@ def get_params_from_stdin() -> dict:
 
 def handle_error(error, message='Unknown error, please ask the admins to check container logs for more info'):
     # This will be written to container logs
-    sys.stderr.write(str(error))
+    sys.stderr.write(f'Error from function: {str(error)}\n\n')
 
     # This will be sent back to caller/server
     start = "Error from function: "
