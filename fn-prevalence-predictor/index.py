@@ -37,6 +37,7 @@ def handle_error(error, message='Unknown error, please ask the admins to check c
 # Please give me content that JSON-dumpable:
 #   e.g. a string, could be base64-encoded, or some JSON-like object
 def handle_success(result):
+    result = {'message': 'fine, but not printing result because it seems to break things'}
     print(json.dumps({"function_status": "success",
                       "result": result}))
 
