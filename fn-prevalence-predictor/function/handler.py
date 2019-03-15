@@ -23,9 +23,19 @@ def run_function(params):
 
     # Start the hard bit
     sys.stderr.write("Starting heavy bit...")
+
+    # redirecting sstdout
+    original = sys.stdout
+    sys.stdout = open('file', 'w')
+
     response = adaptive_prototype_0(x_frame=x_frame, x_id=x_id,
                                     x_coords=x_coords,
                                     n_positive=n_positive,
                                     n_trials=n_trials,
                                     threshold=threshold)  # , covariate_layers=None)
+    
+    sys.stdout = original
+    # print(response)
+    # print(json.dumps(response), end='')
+
     return response
