@@ -24,9 +24,9 @@ def run_function(params):
     # Start the hard bit
     sys.stderr.write("Starting heavy bit...")
 
-    # redirecting sstdout
+    # redirecting stdout
     original = sys.stdout
-    sys.stdout = open('file', 'w')
+    sys.stdout = open('/dev/null', 'w')
 
     response = adaptive_prototype_0(x_frame=x_frame, x_id=x_id,
                                     x_coords=x_coords,
