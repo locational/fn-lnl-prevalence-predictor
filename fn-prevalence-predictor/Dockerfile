@@ -18,7 +18,11 @@ COPY function function
 # Populate example here - i.e. "cat", "sha512sum" or "node index.js"
 ENV fprocess="python index.py"
 # Set to true to see request in function logs
-ENV write_debug="false"
+# ENV combine_output='false'
+# ENV write_debug="true"
+# ENV write_timeout=0
+# ENV read_timeout=0
+# ENV exec_timeout=0
 
 EXPOSE 8080
 
