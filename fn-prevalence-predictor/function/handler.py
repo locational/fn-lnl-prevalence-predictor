@@ -75,7 +75,7 @@ def handle(req):
     df_frame = pd.DataFrame(np.hstack([x_frame, cov_frame]), columns=['lng', 'lat'] + layer_names)
 
     # MGCV model
-    gam_fromula = ["cbind(n_positive, n_trials - n_positive) ~ te(lng, lat, bs='gp', m=c(2), k=-1)"] + ['s(%s)' %(i) in layer_names]
+    gam_formula = ["cbind(n_positive, n_trials - n_positive) ~ te(lng, lat, bs='gp', m=c(2), k=-1)"] + ['s(%s)' %(i) in layer_names]
     gam_formula = '+'.join(gam_formula)
 
     gam = disarm_gears.r_plugins.mgcv_fit(gam_formula, family='binomial', data=df_train)
