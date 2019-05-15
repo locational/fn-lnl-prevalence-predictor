@@ -89,12 +89,11 @@ def handle(req):
         ut = (link_sims > link_threshold).mean(0)
     elif uncertainty_type == '95%_bci':
         ut = np.percentile(link_sims, q = [2.5, 97.5], axis=0)
-        ut = 1. / (1. + np.exp(-ut)
+        ut = 1. / (1. + np.exp(-ut))
 
     #m_export = {'id': x_id.tolist(), 'exceedance_prob': m_prob.tolist(), 'category': m_category.tolist(),
     #            'entropy': entropy.tolist()}#, 'prevalence': m_prev.tolist()}
-    m_export = {'id': x_id.tolist(), 'prevalence': gam_pred.tolist(), 'uncertainty': ut.tolist()
-                'uncertainty_type': uncertainty_type}
+    m_export = {'id': x_id.tolist(), 'prevalence': gam_pred.tolist(), 'uncertainty': ut.tolist(), 'uncertainty_type': uncertainty_type}
 
     response = {'polygons': ts_export, 'estimates': m_export}
 
