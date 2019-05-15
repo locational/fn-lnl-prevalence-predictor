@@ -2,6 +2,7 @@ import json
 import sys
 import pandas as pd
 import numpy as np
+import disarm_gears
 from disarm_gears.validators import *
 #from disarm_gears.import TilePattern
 
