@@ -56,7 +56,7 @@ def handle(req):
     #ts_export = {id: {'lng': zi.boundary.coords.xy[0].tolist(),
     #                  'lat': zi.boundary.coords.xy[1].tolist()}
     #             for zi, id in zip(ts.region.geometry, x_id)}
-    ts_export = {idi: {'lng': xi[0], 'lat': xi[1] for idi, xi in zip(x_id, x_frame)}}
+    ts_export = {idi: {'lng': xi[0], 'lat': xi[1]} for idi, xi in zip(x_id, x_frame)}
 
     # Find covariates
     algo_link = 'http://faas.srv.disarm.io/function/fn-covariate-extractor'
