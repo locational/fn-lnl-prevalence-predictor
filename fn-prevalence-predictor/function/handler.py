@@ -68,9 +68,10 @@ def handle(req):
     cov_train = np.vstack([[js['properties'][k] for k in layer_names] for js in algo_train.json()['result']['features']])
     cov_frame = np.vstack([[js['properties'][k] for k in layer_names] for js in algo_frame.json()['result']['features']])
 
-    df_train = pd.DataFrame(np.hstack([x_coords, cov_train, n_trials, n_positive],
-                                      columns=['lng', 'lat'] + layer_names + ['n_trials' 'n_positive'])
-    df_frame = pd.DataFrame(np.hstack([x_frame, cov_frame, columns=['lng', 'lat'] + layer_names)
+    #TODO reshape cov_frame if it is one-dimensional
+    df_train = pd.DataFrame(np.hstack([x_coords, cov_train, n_trials[:, None], n_positive[:, None]]),
+                            columns=['lng', 'lat'] + layer_names + ['n_trials' 'n_positive'])
+    df_frame = pd.DataFrame(np.hstack([x_frame, cov_frame]), columns=['lng', 'lat'] + layer_names)
 
     # MGCV model
     gam_fromula = ["cbind(n_positive, n_trials - n_positive) ~ te(lng, lat, bs='gp', m=c(2), k=-1)"] + ['s(%s)' %(i) in layer_names]
