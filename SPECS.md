@@ -16,8 +16,8 @@ A nested JSON object containing:
 - `n_trials` - array of number of individuals examined/tested at each location
 - `n_positive` - array of number of individuals positive at each location
 
-`request_parameters` - a JSON containing the following field:
-- `threshold` - Required. a single number (can be float) >0 and <1 representing the threshold prevalence used to define a hotspot. e.g. 0.2 if hotspots are areas where prevalence is >20%. 
+- `uncertainty_type` - {string} Either `exceedance_probability` or `95%_bci`
+- `exceedance_threshold` - {Number} Optional. Required if `uncertainty_type` is `exceedance_probability`. Between 0 and 1.
   
   
 ## Constraints
