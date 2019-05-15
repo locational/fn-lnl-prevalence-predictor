@@ -60,6 +60,7 @@ def handle(req):
     ts_export = {idi: {'lng': xi[0], 'lat': xi[1]} for idi, xi in zip(x_id, x_frame)}
 
     # Find covariates
+    covariate_layers = np.array([1, 4, 12, 15])
     algo_link = 'http://faas.srv.disarm.io/function/fn-covariate-extractor'
     layer_names = ['bioclim%s' %j for j in covariate_layers] + ['elev_m', 'dist_to_water_m']
     x_train_js = df_to_geojson(pd.DataFrame(x_coords, columns=['lng', 'lat']), layer_names=layer_names)
