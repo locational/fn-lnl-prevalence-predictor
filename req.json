@@ -1,0 +1,32 @@
+{
+  "train_data": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "abc123",
+          "n_trials": 1,
+          "n_positive": 0
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                12,
+                23
+              ],
+              [
+                23,
+                34
+              ]
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  "exceedance_threshold": 0.1,
+  "uncertainty_type": "exceedance_probability"
+}
