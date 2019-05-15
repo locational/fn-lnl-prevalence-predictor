@@ -6,3 +6,4 @@ sklearn
 pygam
 descartes
 requests
+rpy2
