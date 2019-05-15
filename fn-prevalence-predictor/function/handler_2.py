@@ -92,7 +92,8 @@ def handle(req):
 
     #m_export = {'id': x_id.tolist(), 'exceedance_prob': m_prob.tolist(), 'category': m_category.tolist(),
     #            'entropy': entropy.tolist()}#, 'prevalence': m_prev.tolist()}
-    m_export = {'id': x_id.tolist(), 'prevalence': gam_pred.tolist()}
+    m_export = {'id': x_id.tolist(), 'prevalence': gam_pred.tolist(), 'uncertainty': ut.tolist()
+                'uncertainty_type': uncertainty_type}
 
     response = {'polygons': ts_export, 'estimates': m_export}
 
