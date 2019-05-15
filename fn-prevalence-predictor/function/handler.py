@@ -3,6 +3,7 @@ import sys
 import pandas as pd
 import numpy as np
 import disarm_gears
+import requests
 from disarm_gears.validators import *
 #from disarm_gears.import TilePattern
 
