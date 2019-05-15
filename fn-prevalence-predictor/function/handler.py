@@ -1,34 +1,38 @@
-import json
 import sys
+from contextlib import redirect_stdout
+
 import pandas as pd
 import numpy as np
 from disarm_gears.chain_drives.prototypes import adaptive_prototype_0
 
-def handle(req):
-    """handle a request to the function
-    Args:
-        req (str): request body
-    """
-    # redirecting sstdout
-    original = sys.stdout
-    sys.stdout = open('file', 'w')
 
-    json_data = json.loads(req)
-    region_data = pd.DataFrame(json_data['region_definition'])
-    train_data = pd.DataFrame(json_data['train_data'])
+def run_function(params):
+    # Extract required params
+    threshold = params['request_parameters']['threshold']
+    region_definition = params['region_definition']
+    train_data = params['train_data']
 
+    # Create initial dataframes
+    region_data = pd.DataFrame(region_definition)
+    train_data = pd.DataFrame(train_data)
+
+    # Prepare parameters for function
     x_frame = np.array(region_data[['lng', 'lat']])
     x_id = np.array(region_data['id'])
     x_coords = np.array(train_data[['lng', 'lat']])
     n_trials = np.array(train_data['n_trials'])
     n_positive = np.array(train_data['n_positive'])
-    threshold = json_data['request_parameters']['threshold']
 
-    response = adaptive_prototype_0(x_frame=x_frame, x_id=x_id,
-                                    x_coords=x_coords,
-                                    n_positive=n_positive,
-                                    n_trials=n_trials,
-                                    threshold=threshold)#, covariate_layers=None)
-    sys.stdout = original
-    print(response)
-    print(json.dumps(response), end='')
+    # Start the hard bit
+    sys.stderr.write("Starting heavy bit...")
+
+
+    # redirecting stdout and stderr
+    with open('pyGAM.log', 'w') as f:
+      with redirect_stdout(f):
+        response = adaptive_prototype_0(x_frame=x_frame, x_id=x_id,
+                                        x_coords=x_coords,
+                                        n_positive=n_positive,
+                                        n_trials=n_trials,
+                                        threshold=threshold)  # , covariate_layers=None)
+    return response
