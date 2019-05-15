@@ -61,22 +61,33 @@ def handle(req):
     ts_export = {idi: {'lng': xi[0], 'lat': xi[1]} for idi, xi in zip(x_id, x_frame)}
 
     # Find covariates
-    open_faas_link = 'http://faas.srv.disarm.io/function/fn-covariate-extractor'
-    train_request = disarm_gears.util.geojson_encoder_1(train_data, layer_names=layer_names)
-    frame_request = disarm_gears.util.geojson_encoder_1(region_data, layer_names=layer_names)
-    train_response = requests.post(open_faas_link, data=train_request)
-    frame_response = requests.post(open_faas_link, data=frame_request)
-    cov_train = np.array([[js['properties'][k] for k in layer_names] for js in train_response.json()['result']['features']])
-    cov_frame = np.array([[js['properties'][k] for k in layer_names] for js in frame_response.json()['result']['features']])
+    if layer_names is not None:
+        open_faas_link = 'http://faas.srv.disarm.io/function/fn-covariate-extractor'
+        train_request = disarm_gears.util.geojson_encoder_1(train_data, layer_names=layer_names)
+        frame_request = disarm_gears.util.geojson_encoder_1(region_data, layer_names=layer_names)
+        train_response = requests.post(open_faas_link, data=train_request)
+        frame_response = requests.post(open_faas_link, data=frame_request)
+        cov_train = np.array([[js['properties'][k] for k in layer_names] for js in train_response.json()['result']['features']])
+        cov_frame = np.array([[js['properties'][k] for k in layer_names] for js in frame_response.json()['result']['features']])
 
-    #TODO reshape cov_frame if it is one-dimensional
-    df_train = pd.DataFrame(np.hstack([x_coords, cov_train, n_trials[:, None], n_positive[:, None]]),
-                            columns=['lng', 'lat'] + layer_names + ['n_trials' 'n_positive'])
-    df_frame = pd.DataFrame(np.hstack([x_frame, cov_frame]), columns=['lng', 'lat'] + layer_names)
+        #TODO reshape cov_frame if it is one-dimensional
+        df_train = pd.DataFrame(np.hstack([x_coords, cov_train, n_trials[:, None], n_positive[:, None]]),
+                                columns=['lng', 'lat'] + layer_names + ['n_trials' 'n_positive'])
+        df_frame = pd.DataFrame(np.hstack([x_frame, cov_frame]), columns=['lng', 'lat'] + layer_names)
 
-    # MGCV model
-    gam_formula = ["cbind(n_positive, n_trials - n_positive) ~ te(lng, lat, bs='gp', m=c(2), k=-1)"] + ['s(%s)' %(i) in layer_names]
-    gam_formula = '+'.join(gam_formula)
+
+        # MGCV model
+        gam_formula = ["cbind(n_positive, n_trials - n_positive) ~ te(lng, lat, bs='gp', m=c(2), k=-1)"] + ['s(%s)' %(i) in layer_names]
+        gam_formula = '+'.join(gam_formula)
+
+    else:
+        df_train = pd.DataFrame(np.hstack([x_coords, n_trials[:, None], n_positive[:, None]]),
+                                columns=['lng', 'lat'] + layer_names + ['n_trials' 'n_positive'])
+        df_frame = pd.DataFrame(x_frame, columns=['lng', 'lat'] + layer_names)
+
+        # MGCV model
+        gam_formula = "cbind(n_positive, n_trials - n_positive) ~ te(lng, lat, bs='gp', m=c(2), k=-1)"
+
 
     gam = disarm_gears.r_plugins.mgcv_fit(gam_formula, family='binomial', data=df_train)
     gam_pred = disarm_gears.r_plugins.mgcv_predict(gam, data=df_frame, response_type='response')
