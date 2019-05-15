@@ -34,6 +34,7 @@ def handle(req):
     x_coords = np.array(train_data[['lng', 'lat']])
     n_trials = np.array(train_data['n_trials'])
     n_positive = np.array(train_data['n_positive'])
+    layer_names = json_data['train_data']['layer_names']
 
     # Validate data inputs (some of these are redundant)
     validate_2d_array(x_frame, n_cols=2)
@@ -60,15 +61,13 @@ def handle(req):
     ts_export = {idi: {'lng': xi[0], 'lat': xi[1]} for idi, xi in zip(x_id, x_frame)}
 
     # Find covariates
-    covariate_layers = np.array([1, 4, 12, 15])
-    algo_link = 'http://faas.srv.disarm.io/function/fn-covariate-extractor'
-    layer_names = ['bioclim%s' %j for j in covariate_layers] + ['elev_m', 'dist_to_water_m']
-    x_train_js = df_to_geojson(pd.DataFrame(x_coords, columns=['lng', 'lat']), layer_names=layer_names)
-    x_frame_js = df_to_geojson(pd.DataFrame(x_frame, columns=['lng', 'lat']), layer_names=layer_names)
-    algo_train = requests.post(algo_link, data=json.dumps(x_train_js))
-    algo_frame = requests.post(algo_link, data=json.dumps(x_frame_js))
-    cov_train = np.vstack([[js['properties'][k] for k in layer_names] for js in algo_train.json()['result']['features']])
-    cov_frame = np.vstack([[js['properties'][k] for k in layer_names] for js in algo_frame.json()['result']['features']])
+    open_faas_link = 'http://faas.srv.disarm.io/function/fn-covariate-extractor'
+    train_request = disarm_gears.util.geojson_encoder_1(train_data, layer_names=layer_names)
+    frame_request = disarm_gears.util.geojson_encoder_1(region_data, layer_names=layer_names)
+    train_response = requests.post(open_faas_link, data=train_request)
+    frame_response = requests.post(open_faas_link, data=frame_request)
+    cov_train = np.array([[js['properties'][k] for k in layer_names] for js in train_response.json()['result']['features']])
+    cov_frame = np.array([[js['properties'][k] for k in layer_names] for js in frame_response.json()['result']['features']])
 
     #TODO reshape cov_frame if it is one-dimensional
     df_train = pd.DataFrame(np.hstack([x_coords, cov_train, n_trials[:, None], n_positive[:, None]]),
