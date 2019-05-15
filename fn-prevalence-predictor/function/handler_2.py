@@ -3,7 +3,7 @@ import sys
 import pandas as pd
 import numpy as np
 from disarm_gears.validators import *
-from disarm_gears.import TilePattern
+#from disarm_gears.import TilePattern
 
 
 
@@ -32,9 +32,6 @@ def handle(req):
     x_coords = np.array(train_data[['lng', 'lat']])
     n_trials = np.array(train_data['n_trials'])
     n_positive = np.array(train_data['n_positive'])
-
-    # Not needed for predicting prevalence only
-    #threshold = json_data['request_parameters']['threshold']
 
     # Validate data inputs (some of these are redundant)
     validate_2d_array(x_frame, n_cols=2)
@@ -80,6 +77,18 @@ def handle(req):
 
     gam = disarm_gears.r_plugins.mgcv_fit(gam_formula, family='binomial', data=df_train)
     gam_pred = disarm_gears.r_plugins.mgcv_predict(gam, data=df_frame, response_type='response')
+    link_sims = disarm_gears.r_plugins.mgcv_posterior_samples(gam, data=df_frame, n_samples=200, response_type='inverse_link')
+
+    # Uncertainty computation
+    uncertainty_type = json_data['request_parameters']['uncertainty_type']
+    if uncertainty_type == 'exceedance_probability':
+        threshold = json_data['request_parameters']['threshold']
+        link_threshold = np.log(threshold / (1 - threshold))
+        ut = (link_sims > link_threshold).mean(0)
+    elif uncertainty_type == '95%_bci':
+        ut = np.percentile(link_sims, q = [2.5, 97.5], axis=0)
+
+
 
     #m_export = {'id': x_id.tolist(), 'exceedance_prob': m_prob.tolist(), 'category': m_category.tolist(),
     #            'entropy': entropy.tolist()}#, 'prevalence': m_prev.tolist()}
