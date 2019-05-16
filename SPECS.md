@@ -1,37 +1,26 @@
 # Prevalence predictor
-Function to predict probability of infection (prevalence) using georeferenced binomial (number examined, numbers positive) data.
+
+Give us a bunch of GeoJSON points with numbers examined and numbers positive, as well as a GeoJSON of prediction points, and we'll predict the probability of occurrence at each prediction point.
 
 ## Parameters
 
 A nested JSON object containing:
+- `point_data` - {GeoJSON FeatureCollection} Required. Features with following properties:
+  - `n_trials` - {integer} Required. Number of individuals examined/tested at each location (‘null’ for points without observations)
+  - `n_positive` - {integer} Required. Number of individuals positive at each location (‘null’ for points without observations)
+  
+- `uncertainty_type` - {string} Optional. Either `exceedance_probability` or `95_perc_bci`. Defaults to `95_perc_bci`. Representing how uncertainty should be calculated. If  ‘exceedance_probability’ uncertainty estimates are calculated using exceedance probability uncertainty, i.e. the probability prevalence exceeds exceedance_threshold). If ‘95_perc_bci’, uncertainty is calculated as the 95% Bayesian credible interval. 
+- `exceedance_threshold` - {numeric} Required if `uncertainty_type` is `exceedance_probability`. Defines the exceedance threshold used to calculate exceedance probabilities. Must be >0 and <1. 
 
-`region_definition` - Required. A JSON array containing objects with the following fields:
-- `lng` - array of longitudes of locations to predict to
-- `lat` - array of latitudes of locations to predict to
-- `id` - array of unique IDs of locations to predict to
-  
-`train_data` - Required. A JSON array containing objects with the following fields:
-- `lng` - array of longitudes of locations at which data are available
-- `lat` - array of latitudes of locations at which data are available
-- `n_trials` - array of number of individuals examined/tested at each location
-- `n_positive` - array of number of individuals positive at each location
+- `layer_names` - {array of strings} Optional. Default is to run with only latitude and longitude. Names relating to the covariate to use to model and predict. See [here](https://github.com/disarm-platform/fn-covariate-extractor/blob/master/SPECS.md) for options.
 
-- `uncertainty_type` - {string} Either `exceedance_probability` or `95%_bci`
-- `exceedance_threshold` - {Number} Optional. Required if `uncertainty_type` is `exceedance_probability`. Between 0 and 1.
-  
-  
+
 ## Constraints
 
-- maximum size of..
+- maximum number of points/features
+- maximum number of layers is XX
+- can only include points within a single country
 
 ## Response
-JSON object containing
 
-`estimates` - a JSON containing
-- `exceedance_prob` - array of probabilities that prevlance exceeds the `threshold`
-- `entropy` - entropy estimates
-- `id` - array of unique IDs of prediction location
-- `category` - hotspot category (1/0 classification where locations are classed as 1 if `exceedance_prob` >= 0.5)
-
-`polygons` - coordinates of voronoi polygons associated with each point defined in `region_definition`
-
+- `point_data` {GeoJSON FeatureCollection} With additional prediction field representing predicted probability of occurrence (0-1 scale). Uncertainty field added if `uncertainty_type` defined when fitting the model: named after `uncertainty_type`  
