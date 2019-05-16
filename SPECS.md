@@ -24,3 +24,6 @@ A nested JSON object containing:
 ## Response
 
 - `point_data` {GeoJSON FeatureCollection} With additional prediction field representing predicted probability of occurrence (0-1 scale). Uncertainty field added if `uncertainty_type` defined when fitting the model: named after `uncertainty_type`  
+    - `lower`
+    - `upper`
+    - `exceedance_probability`

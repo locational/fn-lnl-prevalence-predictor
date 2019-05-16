@@ -3,6 +3,7 @@ import sys
 
 import disarm_gears
 import pandas as pd
+import geopandas as gp
 import requests
 from disarm_gears.validators import *
 
@@ -22,15 +23,16 @@ def run_function(params: dict):
     layer_names = params.get('layer_names')
     uncertainty_type = params.get('uncertainty_type', '95_perc_bci')
     exceedance_threshold = params.get('exceedance_threshold')
+    point_data = params.get('point_data')
 
     # Train and prediction datasets
-    # TODO: Use Geopandas instead?
-    region_data = pd.DataFrame(params['point_data'])
-    train_data = pd.DataFrame(params['point_data']) # TODO: make this only rows with observations
+    # TODO: RA - Use Geopandas instead
+    region_data = pd.DataFrame(point_data)
+    train_data = pd.DataFrame(point_data) # TODO: RA - make this only rows with observations
 
-    # TODO: ensure this extracts from a GeoJSON FeatureCollection, not arrays of values
-    x_frame = np.array(region_data[['lng', 'lat']])
-    x_id = np.array(region_data['id']) # TODO: we're not requiring `ids` on input Features - is this a problem?
+    # TODO: RA - ensure this extracts from a GeoJSON FeatureCollection, not arrays of values
+    x_frame = np.array(region_data[['lng', 'lat']]) # TODO: RA - check how geopandas gets coords out
+    x_id = np.array(region_data['id']) # TODO: RA - we're not requiring `ids` on input Features - drop x_id throughout
     x_coords = np.array(train_data[['lng', 'lat']])
     n_trials = np.array(train_data['n_trials'])
     n_positive = np.array(train_data['n_positive'])
@@ -55,9 +57,6 @@ def run_function(params: dict):
     validate_integer_array(n_trials)
     validate_1d_array(n_trials, size=train_size)
 
-    # TODO: Don't think we need `ts_export` - delete?
-    ts_export = {idi: {'lng': xi[0], 'lat': xi[1]} for idi, xi in zip(x_id, x_frame)}
-
     # Find covariates
     if layer_names is not None:
         open_faas_link = 'http://faas.srv.disarm.io/function/fn-covariate-extractor'
@@ -67,7 +66,7 @@ def run_function(params: dict):
         frame_response = requests.post(open_faas_link, data=frame_request)
         cov_train = np.array(
             [[js['properties'][k] for k in layer_names] for js in train_response.json()['result']['features']])
-        # TODO: Duplicated from above?
+        # TODO: RA - Duplicated from above?
         cov_frame = np.array(
             [[js['properties'][k] for k in layer_names] for js in frame_response.json()['result']['features']])
 
@@ -77,7 +76,6 @@ def run_function(params: dict):
         df_frame = pd.DataFrame(np.hstack([x_frame, cov_frame]), columns=['lng', 'lat'] + layer_names)
 
         # MGCV model
-        # TODO: what is `i` below? Looks broken?
         gam_formula = ["cbind(n_positive, n_trials - n_positive) ~ te(lng, lat, bs='gp', m=c(2), k=-1)"] + [
             's(%s)' % (i) in layer_names]
         gam_formula = '+'.join(gam_formula)
@@ -85,8 +83,8 @@ def run_function(params: dict):
     else:
         # TODO: remove layer_names below - will always be of NoneType
         df_train = pd.DataFrame(np.hstack([x_coords, n_trials[:, None], n_positive[:, None]]),
-                                columns=['lng', 'lat'] + layer_names + ['n_trials' 'n_positive'])
-        df_frame = pd.DataFrame(x_frame, columns=['lng', 'lat'] + layer_names)
+                                columns=['lng', 'lat'] + ['n_trials' 'n_positive'])
+        df_frame = pd.DataFrame(x_frame, columns=['lng', 'lat'])
 
         # MGCV model
         gam_formula = "cbind(n_positive, n_trials - n_positive) ~ te(lng, lat, bs='gp', m=c(2), k=-1)"
@@ -97,16 +95,14 @@ def run_function(params: dict):
                                                               response_type='inverse_link')
 
     # Uncertainty computation
-    # TODO: Check if logic below - is possible to be neither, and so `ut` will not be assigned
     if uncertainty_type == 'exceedance_probability':
         link_threshold = np.log(exceedance_threshold / (1 - exceedance_threshold))
-        # TODO: Syntax-error? mean of a bool
         ut = (link_sims > link_threshold).mean(0)
-    else: # Assume 95_perc_bci, as this is the default
+    else:  # Assume 95_perc_bci, as this is the default
         ut = np.percentile(link_sims, q=[2.5, 97.5], axis=0)
         ut = 1. / (1. + np.exp(-ut))
 
-    # TODO: reshape dict below
+    # TODO: RA - delete dict below?
     m_export = {'id': x_id.tolist(), 'prevalence': gam_pred.tolist(), 'uncertainty': ut.tolist(),
                 'uncertainty_type': uncertainty_type}
 
@@ -114,16 +110,10 @@ def run_function(params: dict):
     # 3. Package output
     #
 
-    # TODO: reshape response object
-    # TODO: polygons isn't polygons! The output should include
-    #  the original points passed in, with additional prediction parameters
-    response = {'polygons': ts_export, 'estimates': m_export}
+    response = {} # geojson_encoder on
 
     # Restore STDOUT
     sys.stdout = original
 
-    # TODO: Don't want to print response here after we've restored STDOUT?
-    print(response)
-
-    # Return result
-    return(response)
+    # Return result - needs to be a dict from GeoJSON. Response gets `json.dumps` later. Geopandas might help.
+    return response
