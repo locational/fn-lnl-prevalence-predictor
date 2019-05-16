@@ -1,11 +1,6 @@
-import json
-import sys
-
-import disarm_gears
 import pandas as pd
-import geopandas as gp
 import requests
-from disarm_gears.validators import *
+import disarm_gears
 
 
 def run_function(params: dict):
@@ -21,99 +16,69 @@ def run_function(params: dict):
     sys.stdout = open('file', 'w')
 
     layer_names = params.get('layer_names')
-    uncertainty_type = params.get('uncertainty_type', '95_perc_bci')
+    #uncertainty_type = params.get('uncertainty_type', '95_perc_bci') By default we will compute the 95%bci now
     exceedance_threshold = params.get('exceedance_threshold')
     point_data = params.get('point_data')
-
-    # Train and prediction datasets
-    # TODO: RA - Use Geopandas instead
-    region_data = pd.DataFrame(point_data)
-    train_data = pd.DataFrame(point_data) # TODO: RA - make this only rows with observations
-
-    # TODO: RA - ensure this extracts from a GeoJSON FeatureCollection, not arrays of values
-    x_frame = np.array(region_data[['lng', 'lat']]) # TODO: RA - check how geopandas gets coords out
-    x_id = np.array(region_data['id']) # TODO: RA - we're not requiring `ids` on input Features - drop x_id throughout
-    x_coords = np.array(train_data[['lng', 'lat']])
-    n_trials = np.array(train_data['n_trials'])
-    n_positive = np.array(train_data['n_positive'])
+    input_data = disarm_gears.util.geojson_decoder_1(point_data)
 
     #
     # 2. Process
     #
 
-    # Validate data inputs (some of these are redundant)
-    validate_2d_array(x_frame, n_cols=2)
-    frame_size = x_frame.shape[0]
-    if x_id is None:
-        x_id = np.arange(frame_size)
-    else:
-        validate_1d_array(x_id, size=frame_size)
-    validate_2d_array(x_coords, n_cols=2)
-    train_size = x_coords.shape[0]
-    validate_1d_array(n_positive, size=train_size)
-    validate_non_negative_array(n_positive)
-    validate_integer_array(n_positive)
-    validate_positive_array(n_trials)
-    validate_integer_array(n_trials)
-    validate_1d_array(n_trials, size=train_size)
+    # Drop NA coordinates
+    input_data.dropna(axis=0, subset=['lng', 'lat'])
 
     # Find covariates
     if layer_names is not None:
+
+        # Call fn-covariate-extractor
         open_faas_link = 'http://faas.srv.disarm.io/function/fn-covariate-extractor'
-        train_request = disarm_gears.util.geojson_encoder_1(train_data, layer_names=layer_names)
-        frame_request = disarm_gears.util.geojson_encoder_1(region_data, layer_names=layer_names)
-        train_response = requests.post(open_faas_link, data=train_request)
-        frame_response = requests.post(open_faas_link, data=frame_request)
-        cov_train = np.array(
-            [[js['properties'][k] for k in layer_names] for js in train_response.json()['result']['features']])
-        # TODO: RA - Duplicated from above?
-        cov_frame = np.array(
-            [[js['properties'][k] for k in layer_names] for js in frame_response.json()['result']['features']])
+        covs_request = disarm_gears.util.geojson_encoder_1(input_data, layer_names=layer_names)
+        covs_response = requests.post(open_faas_link, data=covs_request)
+        #TODO? assert covs_response.json()['type'] == 'success'
+        #TODO define how to handle NA entries in the covariates
 
-        # TODO reshape cov_frame if it is one-dimensional
-        df_train = pd.DataFrame(np.hstack([x_coords, cov_train, n_trials[:, None], n_positive[:, None]]),
-                                columns=['lng', 'lat'] + layer_names + ['n_trials' 'n_positive'])
-        df_frame = pd.DataFrame(np.hstack([x_frame, cov_frame]), columns=['lng', 'lat'] + layer_names)
+        # Merge output into input_data
+        covs_data = disarm_gears.util.geojson_decoder_1(covs_response.json()['result'])
+        input_data = pd.merge(input_data, covs_data, how='left', left_on=['lng', 'lat'], right_on=['lng', 'lat'])
 
-        # MGCV model
-        gam_formula = ["cbind(n_positive, n_trials - n_positive) ~ te(lng, lat, bs='gp', m=c(2), k=-1)"] + [
-            's(%s)' % (i) in layer_names]
+    # Define mgcv model
+    gam_formula = "cbind(n_positive, n_trials - n_positive) ~ te(lng, lat, bs='gp', m=c(2), k=-1)"
+    if layer_names is not None:
+        gam_formula = [gam_formula] + ['s(%s)' %i for i in layer_names]
         gam_formula = '+'.join(gam_formula)
 
-    else:
-        # TODO: remove layer_names below - will always be of NoneType
-        df_train = pd.DataFrame(np.hstack([x_coords, n_trials[:, None], n_positive[:, None]]),
-                                columns=['lng', 'lat'] + ['n_trials' 'n_positive'])
-        df_frame = pd.DataFrame(x_frame, columns=['lng', 'lat'])
-
-        # MGCV model
-        gam_formula = "cbind(n_positive, n_trials - n_positive) ~ te(lng, lat, bs='gp', m=c(2), k=-1)"
-
-    gam = disarm_gears.r_plugins.mgcv_fit(gam_formula, family='binomial', data=df_train)
-    gam_pred = disarm_gears.r_plugins.mgcv_predict(gam, data=df_frame, response_type='response')
-    link_sims = disarm_gears.r_plugins.mgcv_posterior_samples(gam, data=df_frame, n_samples=200,
+    # Fit model and make predictions/simulations
+    train_data = input_data.dropna(axis=0)
+    gam = disarm_gears.r_plugins.mgcv_fit(gam_formula, family='binomial', data=train_data)
+    gam_pred = disarm_gears.r_plugins.mgcv_predict(gam, data=input_data, response_type='response')
+    link_sims = disarm_gears.r_plugins.mgcv_posterior_samples(gam, data=input_data, n_samples=200,
                                                               response_type='inverse_link')
 
-    # Uncertainty computation
-    if uncertainty_type == 'exceedance_probability':
-        link_threshold = np.log(exceedance_threshold / (1 - exceedance_threshold))
-        ut = (link_sims > link_threshold).mean(0)
-    else:  # Assume 95_perc_bci, as this is the default
-        ut = np.percentile(link_sims, q=[2.5, 97.5], axis=0)
-        ut = 1. / (1. + np.exp(-ut))
+    # Credible interval
+    bci = np.percentile(link_sims, q=[2.5, 97.5], axis=0)
+    bci = 1. / (1. + np.exp(-bci))
 
-    # TODO: RA - delete dict below?
-    m_export = {'id': x_id.tolist(), 'prevalence': gam_pred.tolist(), 'uncertainty': ut.tolist(),
-                'uncertainty_type': uncertainty_type}
+    # Exceedance probability
+    ex_prob = None
+    if exceedance_threshold is not None:
+        link_threshold = np.log(exceedance_threshold / (1 - exceedance_threshold))
+        ex_prob = (link_sims > link_threshold).mean(axis=0)
 
     #
     # 3. Package output
     #
 
-    response = {} # geojson_encoder on
+    input_data['prevalence'] = gam_pred
+    input_data['lower'] = bci[0]
+    input_data['upper'] = bci[1]
+    input_data['exceedance_probability'] = ex_prob
+
+    response = disarm_gears.util.geojson_encoder_2(dataframe=input_data,
+                                                   fields=['prevalence', 'lower', 'upper', 'exceedance_probability'],
+                                                   dumps=False)
 
     # Restore STDOUT
     sys.stdout = original
 
-    # Return result - needs to be a dict from GeoJSON. Response gets `json.dumps` later. Geopandas might help.
     return response
