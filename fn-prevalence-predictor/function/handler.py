@@ -8,6 +8,9 @@ from disarm_gears.validators import *
 
 
 def run_function(req: dict):
+    #
+    # 1. Handle input
+    #
 
     # Set random seed
     np.random.seed(1000)
@@ -28,6 +31,10 @@ def run_function(req: dict):
     n_trials = np.array(train_data['n_trials'])
     n_positive = np.array(train_data['n_positive'])
     layer_names = json_data['train_data']['layer_names']
+
+    #
+    # 2. Process
+    #
 
     # Validate data inputs (some of these are redundant)
     validate_2d_array(x_frame, n_cols=2)
@@ -100,6 +107,10 @@ def run_function(req: dict):
 
     m_export = {'id': x_id.tolist(), 'prevalence': gam_pred.tolist(), 'uncertainty': ut.tolist(),
                 'uncertainty_type': uncertainty_type}
+
+    #
+    # 3. Package output
+    #
 
     # TODO: reshape response object
     # TODO: polygons isn't polygons! The output should include
