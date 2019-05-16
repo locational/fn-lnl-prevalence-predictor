@@ -6,5 +6,8 @@ def preprocess(params: dict):
 
     is_type('uncertainty_type', params, str)
 
+    #  TODO: JS - should be either exceedance_probability or 95_perc_bci
+    # if params.get('uncertainty_type')
+
     if params.get('uncertainty_type') == 'exceedance_probability':
         required_exists('exceedance_threshold', params)
