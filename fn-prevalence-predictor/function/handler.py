@@ -7,7 +7,7 @@ import requests
 from disarm_gears.validators import *
 
 
-def run_function(req: dict):
+def run_function(params: dict):
     #
     # 1. Handle input
     #
@@ -19,10 +19,13 @@ def run_function(req: dict):
     original = sys.stdout
     sys.stdout = open('file', 'w')
 
+    layer_names = params['layer_names']
+    uncertainty_type = params['uncertainty_type']
+    threshold = params['threshold']
+
     # Train and prediction datasets
-    json_data = json.loads(req)
-    train_data = pd.DataFrame(json_data['train_data'])
-    region_data = pd.DataFrame(json_data['region_definition'])
+    train_data = pd.DataFrame(params['train_data'])
+    region_data = pd.DataFrame(params['region_definition'])
 
     # TODO: ensure this extracts from a GeoJSON FeatureCollection, not arrays of values
     x_frame = np.array(region_data[['lng', 'lat']])
@@ -30,7 +33,6 @@ def run_function(req: dict):
     x_coords = np.array(train_data[['lng', 'lat']])
     n_trials = np.array(train_data['n_trials'])
     n_positive = np.array(train_data['n_positive'])
-    layer_names = json_data['train_data']['layer_names']
 
     #
     # 2. Process
@@ -94,10 +96,8 @@ def run_function(req: dict):
                                                               response_type='inverse_link')
 
     # Uncertainty computation
-    uncertainty_type = json_data['request_parameters']['uncertainty_type']
     # TODO: Check if logic below - is possible to be neither, and so `ut` will not be assigned
     if uncertainty_type == 'exceedance_probability':
-        threshold = json_data['request_parameters']['threshold']
         link_threshold = np.log(threshold / (1 - threshold))
         # TODO: Syntax-error?
         ut = (link_sims > link_threshold).mean(0)
