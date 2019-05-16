@@ -1,4 +1,4 @@
-git+git://github.com/disarm-platform/disarm-gears.git@v0.1.6
+git+git://github.com/disarm-platform/disarm-gears.git@v0.2.0
 numpy
 matplotlib
 pandas
