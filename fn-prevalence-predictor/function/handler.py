@@ -24,12 +24,13 @@ def run_function(params: dict):
     exceedance_threshold = params.get('exceedance_threshold')
 
     # Train and prediction datasets
-    train_data = pd.DataFrame(params['train_data'])
-    region_data = pd.DataFrame(params['region_definition'])
+    # TODO: Use Geopandas instead?
+    region_data = pd.DataFrame(params['point_data'])
+    train_data = pd.DataFrame(params['point_data']) # TODO: make this only rows with observations
 
     # TODO: ensure this extracts from a GeoJSON FeatureCollection, not arrays of values
     x_frame = np.array(region_data[['lng', 'lat']])
-    x_id = np.array(region_data['id'])
+    x_id = np.array(region_data['id']) # TODO: we're not requiring `ids` on input Features - is this a problem?
     x_coords = np.array(train_data[['lng', 'lat']])
     n_trials = np.array(train_data['n_trials'])
     n_positive = np.array(train_data['n_positive'])
@@ -54,7 +55,7 @@ def run_function(params: dict):
     validate_integer_array(n_trials)
     validate_1d_array(n_trials, size=train_size)
 
-    # TODO: Don't think we need `ts_export`
+    # TODO: Don't think we need `ts_export` - delete?
     ts_export = {idi: {'lng': xi[0], 'lat': xi[1]} for idi, xi in zip(x_id, x_frame)}
 
     # Find covariates
@@ -76,7 +77,7 @@ def run_function(params: dict):
         df_frame = pd.DataFrame(np.hstack([x_frame, cov_frame]), columns=['lng', 'lat'] + layer_names)
 
         # MGCV model
-        # TODO: what is `i` below?
+        # TODO: what is `i` below? Looks broken?
         gam_formula = ["cbind(n_positive, n_trials - n_positive) ~ te(lng, lat, bs='gp', m=c(2), k=-1)"] + [
             's(%s)' % (i) in layer_names]
         gam_formula = '+'.join(gam_formula)
@@ -99,12 +100,13 @@ def run_function(params: dict):
     # TODO: Check if logic below - is possible to be neither, and so `ut` will not be assigned
     if uncertainty_type == 'exceedance_probability':
         link_threshold = np.log(exceedance_threshold / (1 - exceedance_threshold))
-        # TODO: Syntax-error?
+        # TODO: Syntax-error? mean of a bool
         ut = (link_sims > link_threshold).mean(0)
-    else:
+    else: # Assume 95_perc_bci, as this is the default
         ut = np.percentile(link_sims, q=[2.5, 97.5], axis=0)
         ut = 1. / (1. + np.exp(-ut))
 
+    # TODO: reshape dict below
     m_export = {'id': x_id.tolist(), 'prevalence': gam_pred.tolist(), 'uncertainty': ut.tolist(),
                 'uncertainty_type': uncertainty_type}
 
@@ -124,4 +126,4 @@ def run_function(params: dict):
     print(response)
 
     # Return result
-    print(json.dumps(response), end='')
+    return(response)
