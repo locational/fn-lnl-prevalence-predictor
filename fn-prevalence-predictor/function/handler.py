@@ -7,11 +7,7 @@ import requests
 from disarm_gears.validators import *
 
 
-def handle(req):
-    """handle a request to the function
-    Args:
-        req (str): request body
-    """
+def run_function(req: dict):
 
     # Set random seed
     np.random.seed(1000)
