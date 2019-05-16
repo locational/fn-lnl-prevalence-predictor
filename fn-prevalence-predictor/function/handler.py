@@ -49,6 +49,7 @@ def handle(req):
     validate_integer_array(n_trials)
     validate_1d_array(n_trials, size=train_size)
 
+    # TODO: Don't think we need `ts_export`
     ts_export = {idi: {'lng': xi[0], 'lat': xi[1]} for idi, xi in zip(x_id, x_frame)}
 
     # Find covariates
@@ -105,6 +106,8 @@ def handle(req):
                 'uncertainty_type': uncertainty_type}
 
     # TODO: reshape response object
+    # TODO: polygons isn't polygons! The output should include
+    #  the original points passed in, with additional prediction parameters
     response = {'polygons': ts_export, 'estimates': m_export}
 
     # Restore STDOUT
