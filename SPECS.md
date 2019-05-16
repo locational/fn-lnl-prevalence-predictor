@@ -9,7 +9,7 @@ A nested JSON object containing:
   - `n_trials` - {integer} Required. Number of individuals examined/tested at each location (‘null’ for points without observations)
   - `n_positive` - {integer} Required. Number of individuals positive at each location (‘null’ for points without observations)
   
-- `uncertainty_type` - {string} Optional. Either ‘exceedance_probability’ or ‘95_perc_bci’. Defaults to `95_perc_bci`. Representing how uncertainty should be calculated. If  ‘exceedance_probability’ uncertainty estimates are calculated using exceedance probability uncertainty, i.e. the probability prevalence exceeds exceedance_threshold). If ‘95_perc_bci’, uncertainty is calculated as the 95% Bayesian credible interval. 
+- `uncertainty_type` - {string} Optional. Either `exceedance_probability` or `95_perc_bci`. Defaults to `95_perc_bci`. Representing how uncertainty should be calculated. If  ‘exceedance_probability’ uncertainty estimates are calculated using exceedance probability uncertainty, i.e. the probability prevalence exceeds exceedance_threshold). If ‘95_perc_bci’, uncertainty is calculated as the 95% Bayesian credible interval. 
 - `exceedance_threshold` - {numeric} Required if `uncertainty_type` is `exceedance_probability`. Defines the exceedance threshold used to calculate exceedance probabilities. Must be >0 and <1. 
 
 - `layer_names` - {array of strings} Optional. Default is to run with only latitude and longitude. Names relating to the covariate to use to model and predict. See [here](https://github.com/disarm-platform/fn-covariate-extractor/blob/master/SPECS.md) for options.

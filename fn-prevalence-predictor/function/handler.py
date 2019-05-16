@@ -15,13 +15,13 @@ def run_function(params: dict):
     # Set random seed
     np.random.seed(1000)
 
-    # redirecting STDOUT
+    # redirecting STDOUT to avoid over-chatty PyGAM
     original = sys.stdout
     sys.stdout = open('file', 'w')
 
-    layer_names = params['layer_names']
-    uncertainty_type = params['uncertainty_type']
-    threshold = params['threshold']
+    layer_names = params.get('layer_names')
+    uncertainty_type = params.get('uncertainty_type', '95_perc_bci')
+    exceedance_threshold = params.get('exceedance_threshold')
 
     # Train and prediction datasets
     train_data = pd.DataFrame(params['train_data'])
@@ -98,10 +98,10 @@ def run_function(params: dict):
     # Uncertainty computation
     # TODO: Check if logic below - is possible to be neither, and so `ut` will not be assigned
     if uncertainty_type == 'exceedance_probability':
-        link_threshold = np.log(threshold / (1 - threshold))
+        link_threshold = np.log(exceedance_threshold / (1 - exceedance_threshold))
         # TODO: Syntax-error?
         ut = (link_sims > link_threshold).mean(0)
-    elif uncertainty_type == '95_perc_bci':
+    else:
         ut = np.percentile(link_sims, q=[2.5, 97.5], axis=0)
         ut = 1. / (1. + np.exp(-ut))
 
