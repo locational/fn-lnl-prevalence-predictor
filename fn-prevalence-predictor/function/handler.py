@@ -59,7 +59,6 @@ def run_function(params: dict):
 
     # Credible interval
     bci = np.percentile(link_sims, q=[2.5, 97.5], axis=0)
-    bci = 1. / (1. + np.exp(-bci))
 
     # Exceedance probability
     ex_prob = None
