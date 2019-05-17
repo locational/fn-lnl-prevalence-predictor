@@ -23,7 +23,7 @@ A nested JSON object containing:
 ## Response
 
 {GeoJSON FeatureCollection} With additional prediction field representing predicted probability of occurrence (0-1 scale). 
-- `prevalence`
-- `lower`
-- `upper`
-- `exceedance_probability`(NULL if exceedance_threshold is not given as an input parameter)
+- `prevalence_prediction` - best-guess
+- `prevalence_bci_width` - difference between upper 97.5% and lower 2.25% quantiles
+- `exceedance_probability` - Only exists if `exceedance_threshold` provided
+- `exceedance_uncertainty` - Only exists if `exceedance_threshold` provided

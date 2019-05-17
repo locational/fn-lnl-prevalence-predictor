@@ -32,13 +32,12 @@ def run_function(params: dict):
 
     # Find covariates
     if layer_names is not None:
-
         # Call fn-covariate-extractor
         open_faas_link = 'http://faas.srv.disarm.io/function/fn-covariate-extractor'
         covs_request = disarm_gears.util.geojson_encoder_1(input_data, layer_names=layer_names)
         covs_response = requests.post(open_faas_link, data=covs_request)
-        #TODO? assert covs_response.json()['type'] == 'success'
-        #TODO define how to handle NA entries in the covariates
+        # TODO? assert covs_response.json()['type'] == 'success'
+        # TODO define how to handle NA entries in the covariates
 
         # Merge output into input_data
         covs_data = disarm_gears.util.geojson_decoder_1(covs_response.json()['result'])
@@ -47,7 +46,7 @@ def run_function(params: dict):
     # Define mgcv model
     gam_formula = "cbind(n_positive, n_trials - n_positive) ~ te(lng, lat, bs='gp', m=c(2), k=-1)"
     if layer_names is not None:
-        gam_formula = [gam_formula] + ['s(%s)' %i for i in layer_names]
+        gam_formula = [gam_formula] + ['s(%s)' % i for i in layer_names]
         gam_formula = '+'.join(gam_formula)
 
     # Fit model and make predictions/simulations
@@ -62,21 +61,26 @@ def run_function(params: dict):
 
     # Exceedance probability
     ex_prob = None
+    ex_uncert = None
+
     if exceedance_threshold is not None:
         link_threshold = np.log(exceedance_threshold / (1 - exceedance_threshold))
         ex_prob = (link_sims > link_threshold).mean(axis=0)
+        ex_uncert = 0.5 - abs(ex_prob - 0.5)
 
     #
     # 3. Package output
     #
-
-    input_data['prevalence'] = gam_pred
-    input_data['lower'] = bci[0]
-    input_data['upper'] = bci[1]
+    input_data['prevalence_prediction'] = gam_pred
+    input_data['prevalence_bci_width'] = bci[1] - bci[0]
     input_data['exceedance_probability'] = ex_prob
+    input_data['exceedance_uncertainty'] = ex_uncert
 
     response = disarm_gears.util.geojson_encoder_2(dataframe=input_data,
-                                                   fields=['prevalence', 'lower', 'upper', 'exceedance_probability'],
+                                                   fields=['prevalence_prediction',
+                                                           'prevalence_bci_width',
+                                                           'exceedance_probability',
+                                                           'exceedance_uncertainty'],
                                                    dumps=False)
 
     # Restore STDOUT
