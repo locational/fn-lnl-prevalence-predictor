@@ -54,18 +54,19 @@ def run_function(params: dict):
     gam = disarm_gears.r_plugins.mgcv_fit(gam_formula, family='binomial', data=train_data)
     gam_pred = disarm_gears.r_plugins.mgcv_predict(gam, data=input_data, response_type='response')
     link_sims = disarm_gears.r_plugins.mgcv_posterior_samples(gam, data=input_data, n_samples=200,
-                                                              response_type='inverse_link')
+                                                              response_type='link')
 
     # Credible interval
     bci = np.percentile(link_sims, q=[2.5, 97.5], axis=0)
+    bci = 1. / (1. + np.exp(-bci))
 
     # Exceedance probability
     ex_prob = None
     ex_uncert = None
 
     if exceedance_threshold is not None:
-        # link_threshold = np.log(exceedance_threshold / (1 - exceedance_threshold))
-        ex_prob = (link_sims > exceedance_threshold).mean(axis=0)
+        link_threshold = np.log(exceedance_threshold / (1 - exceedance_threshold))
+        ex_prob = (link_sims > link_threshold).mean(axis=0)
         ex_uncert = 0.5 - abs(ex_prob - 0.5)
 
     #
