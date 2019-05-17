@@ -64,8 +64,8 @@ def run_function(params: dict):
     ex_uncert = None
 
     if exceedance_threshold is not None:
-        link_threshold = np.log(exceedance_threshold / (1 - exceedance_threshold))
-        ex_prob = (link_sims > link_threshold).mean(axis=0)
+        # link_threshold = np.log(exceedance_threshold / (1 - exceedance_threshold))
+        ex_prob = (link_sims > exceedance_threshold).mean(axis=0)
         ex_uncert = 0.5 - abs(ex_prob - 0.5)
 
     #
