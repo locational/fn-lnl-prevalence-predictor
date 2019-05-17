@@ -81,4 +81,4 @@ def run_function(params: dict):
     # Restore STDOUT
     sys.stdout = original
 
-    return response
+    return response.get('point_data')

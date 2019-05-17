@@ -22,8 +22,8 @@ A nested JSON object containing:
 
 ## Response
 
-- `point_data` {GeoJSON FeatureCollection} With additional prediction field representing predicted probability of occurrence (0-1 scale). 
-    - `prevalence`
-    - `lower`
-    - `upper`
-    - `exceedance_probability`(NULL if exceedance_threshold is not given as an input parameter)
+{GeoJSON FeatureCollection} With additional prediction field representing predicted probability of occurrence (0-1 scale). 
+- `prevalence`
+- `lower`
+- `upper`
+- `exceedance_probability`(NULL if exceedance_threshold is not given as an input parameter)
