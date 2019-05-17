@@ -5,3 +5,4 @@ build
 venv
 .DS_Store
 template
+fn-prevalence-predictor/file
