@@ -19,7 +19,6 @@ def run_function(params: dict):
     sys.stdout = open('file', 'w')
 
     layer_names = params.get('layer_names')
-    #uncertainty_type = params.get('uncertainty_type', '95_perc_bci') By default we will compute the 95%bci now
     exceedance_threshold = params.get('exceedance_threshold')
     point_data = params.get('point_data')
     input_data = disarm_gears.util.geojson_decoder_1(point_data)
