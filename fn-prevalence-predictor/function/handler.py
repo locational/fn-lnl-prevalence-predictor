@@ -23,6 +23,10 @@ def run_function(params: dict):
     point_data = params.get('point_data')
     input_data = disarm_gears.util.geojson_decoder_1(point_data)
 
+    # Add id column if it is not provided
+    if 'id' not in input_data.columns:
+        input_data['id'] = list(range(input_data.shape[0]))
+
     #
     # 2. Process
     #
