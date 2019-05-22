@@ -6889,6 +6889,5 @@
       }
     ]
   },
-  "exceedance_threshold": 0.1,
-  "uncertainty_type": "exceedance_probability"
+  "exceedance_threshold": 0.1
 }

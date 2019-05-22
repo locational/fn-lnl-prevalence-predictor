@@ -8,6 +8,7 @@ A nested JSON object containing:
 - `point_data` - {GeoJSON FeatureCollection} Required. Features with following properties:
   - `n_trials` - {integer} Required. Number of individuals examined/tested at each location (‘null’ for points without observations)
   - `n_positive` - {integer} Required. Number of individuals positive at each location (‘null’ for points without observations)
+  - `id` - {string} Optional id for each point. If not provided, 1:n (where n is the number of Features in the FeatureCollection) will be used.
   
 - `exceedance_threshold` - {numeric} Optional. Defines the exceedance threshold used to calculate exceedance probabilities. Must be >0 and <1. 
 
@@ -22,8 +23,9 @@ A nested JSON object containing:
 
 ## Response
 
-{GeoJSON FeatureCollection} With additional prediction field representing predicted probability of occurrence (0-1 scale). 
-- `prevalence_prediction` - best-guess
+`point_data` {GeoJSON FeatureCollection} with the following fields: 
+- `id` - as defined by user or 1:n (where n is the number of Features in the FeatureCollection)
+- `prevalence_prediction` - best-guess (probability of occurrence (0-1 scale))
 - `prevalence_bci_width` - difference between upper 97.5% and lower 2.25% quantiles
 - `exceedance_probability` - Only exists if `exceedance_threshold` provided
 - `exceedance_uncertainty` - Only exists if `exceedance_threshold` provided

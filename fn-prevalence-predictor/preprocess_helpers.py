@@ -16,7 +16,9 @@ def required_exists(key, params):
 
 
 def is_type(key, params, param_type):
-    if type(params[key]) != param_type:
+    required_exists(key, params)
+
+    if not isinstance(params[key], param_type):
         raise ValueError(f'Params \'{key}\' is not of type {param_type}')
 
 def write_temp_from_url_or_base64(key, params):
