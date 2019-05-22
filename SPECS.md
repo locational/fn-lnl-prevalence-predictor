@@ -8,6 +8,7 @@ A nested JSON object containing:
 - `point_data` - {GeoJSON FeatureCollection} Required. Features with following properties:
   - `n_trials` - {integer} Required. Number of individuals examined/tested at each location (‘null’ for points without observations)
   - `n_positive` - {integer} Required. Number of individuals positive at each location (‘null’ for points without observations)
+  - `id` - {string} Optional id for each point. If not provided, 1:n (where n is the number of Features in the FeatureCollection) will be used.
   
 - `exceedance_threshold` - {numeric} Optional. Defines the exceedance threshold used to calculate exceedance probabilities. Must be >0 and <1. 
 
