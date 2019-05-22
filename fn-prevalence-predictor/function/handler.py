@@ -27,6 +27,9 @@ def run_function(params: dict):
     if 'id' not in input_data.columns:
         input_data['id'] = list(range(input_data.shape[0]))
 
+    # Make id's a string
+    input_data.loc[:, 'id'] = [str(i) for i in input_data.id]
+
     #
     # 2. Process
     #
