@@ -80,7 +80,8 @@ def run_function(params: dict):
     input_data['exceedance_uncertainty'] = ex_uncert
 
     response = disarm_gears.util.geojson_encoder_2(dataframe=input_data,
-                                                   fields=['prevalence_prediction',
+                                                   fields=['id',
+                                                           'prevalence_prediction',
                                                            'prevalence_bci_width',
                                                            'exceedance_probability',
                                                            'exceedance_uncertainty'],
