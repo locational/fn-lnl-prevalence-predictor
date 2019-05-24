@@ -10,13 +10,18 @@ from urllib.request import urlretrieve
 import config
 
 
+# Required param must exist
 def required_exists(key, params):
     if key not in params:
         raise ValueError(f'Required param \'{key}\' not received.')
 
 
-def is_type(key, params, param_type):
-    required_exists(key, params)
+# If exists, param must be of given type
+def is_type(key, params: dict, param_type):
+    param = params.get(key)
+
+    if param is None:
+        return
 
     if not isinstance(params[key], param_type):
         raise ValueError(f'Params \'{key}\' is not of type {param_type}')
