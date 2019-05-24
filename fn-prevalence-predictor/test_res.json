@@ -1,0 +1,33 @@
+{
+  "function_response": "success",
+  "result": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "abc123",
+          "n_trials": 1,
+          "n_positive": 0,
+          "prediction": 0.4,
+          "uncertainty": 0.7
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                12,
+                23
+              ],
+              [
+                23,
+                34
+              ]
+            ]
+          ]
+        }
+      }
+    ]
+  }
+}

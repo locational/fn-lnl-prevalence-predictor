@@ -1,37 +1,31 @@
 # Prevalence predictor
-Function to predict probability of infection (prevalence) using georeferenced binomial (number examined, numbers positive) data.
+
+Give us a bunch of GeoJSON points with numbers examined and numbers positive, as well as a GeoJSON of prediction points, and we'll predict the probability of occurrence at each prediction point.
 
 ## Parameters
 
 A nested JSON object containing:
+- `point_data` - {GeoJSON FeatureCollection} Required. Features with following properties:
+  - `n_trials` - {integer} Required. Number of individuals examined/tested at each location (‘null’ for points without observations)
+  - `n_positive` - {integer} Required. Number of individuals positive at each location (‘null’ for points without observations)
+  - `id` - {string} Optional id for each point. If not provided, 1:n (where n is the number of Features in the FeatureCollection) will be used.
+  
+- `exceedance_threshold` - {numeric} Optional. Defines the exceedance threshold used to calculate exceedance probabilities. Must be >0 and <1. 
 
-`region_definition` - Required. A JSON array containing objects with the following fields:
-- `lng` - array of longitudes of locations to predict to
-- `lat` - array of latitudes of locations to predict to
-- `id` - array of unique IDs of locations to predict to
-  
-`train_data` - Required. A JSON array containing objects with the following fields:
-- `lng` - array of longitudes of locations at which data are available
-- `lat` - array of latitudes of locations at which data are available
-- `n_trials` - array of number of individuals examined/tested at each location
-- `n_positive` - array of number of individuals positive at each location
+- `layer_names` - {array of strings} Optional. Default is to run with only latitude and longitude. Names relating to the covariate to use to model and predict. See [here](https://github.com/disarm-platform/fn-covariate-extractor/blob/master/SPECS.md) for options.
 
-`request_parameters` - a JSON containing the following field:
-- `threshold` - Required. a single number (can be float) >0 and <1 representing the threshold prevalence used to define a hotspot. e.g. 0.2 if hotspots are areas where prevalence is >20%. 
-  
-  
+
 ## Constraints
 
-- maximum size of..
+- maximum number of points/features
+- maximum number of layers is XX
+- can only include points within a single country
 
 ## Response
-JSON object containing
 
-`estimates` - a JSON containing
-- `exceedance_prob` - array of probabilities that prevlance exceeds the `threshold`
-- `entropy` - entropy estimates
-- `id` - array of unique IDs of prediction location
-- `category` - hotspot category (1/0 classification where locations are classed as 1 if `exceedance_prob` >= 0.5)
-
-`polygons` - coordinates of voronoi polygons associated with each point defined in `region_definition`
-
+`point_data` {GeoJSON FeatureCollection} with the following fields: 
+- `id` - as defined by user or 1:n (where n is the number of Features in the FeatureCollection)
+- `prevalence_prediction` - best-guess (probability of occurrence (0-1 scale))
+- `prevalence_bci_width` - difference between upper 97.5% and lower 2.25% quantiles
+- `exceedance_probability` - Only exists if `exceedance_threshold` provided
+- `exceedance_uncertainty` - Only exists if `exceedance_threshold` provided
