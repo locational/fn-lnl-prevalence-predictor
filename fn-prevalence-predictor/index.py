@@ -21,8 +21,7 @@ def get_params_from_stdin() -> dict:
 
 def handle_error(error, message='Unknown error, please ask the admins to check container logs for more info'):
     # This will be written to container logs
-    #sys.stderr.write(f'Error from function: {str(error)}\n\n')
-    sys.stderr.write('Error from function: %s\n\n' %(str(error)))
+    sys.stderr.write(f'Error from function: {str(error)}\n\n')
 
     # This will be sent back to caller/server
     start = "Error from function: "
@@ -31,13 +30,15 @@ def handle_error(error, message='Unknown error, please ask the admins to check c
         result = start + str(message)
     else:
         result = start + str(error)
-    print(json.dumps({"function_status": "error", "result": result}))
+    print(json.dumps({"function_status": "error",
+                      "result": result}))
 
 
 # Please give me content that JSON-dumpable:
 #   e.g. a string, could be base64-encoded, or some JSON-like object
 def handle_success(result):
-    print(json.dumps({"function_status": "success", "result": result}))
+    print(json.dumps({"function_status": "success",
+                      "result": result}))
 
 
 if __name__ == "__main__":

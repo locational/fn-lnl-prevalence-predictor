@@ -11,18 +11,15 @@ import config
 
 
 def required_exists(key, params):
-    if key not in params: #FIXME should it be params.keys()
-        #raise ValueError(f'Required param \'{key}\' not received.')
-        raise ValueError("Required param \'%s\' not received." %key)
+    if key not in params:
+        raise ValueError(f'Required param \'{key}\' not received.')
 
 
 def is_type(key, params, param_type):
-
     required_exists(key, params)
 
     if not isinstance(params[key], param_type):
-        #raise ValueError(f'Params \'{key}\' is not of type {param_type}')
-        raise ValueError("Params \'%s\' is not of type %s" %(key, param_type))
+        raise ValueError(f'Params \'{key}\' is not of type {param_type}')
 
 def write_temp_from_url_or_base64(key, params):
     value = params[key]
