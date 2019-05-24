@@ -16,7 +16,7 @@ def run_function(params: dict):
 
     # redirecting STDOUT to avoid over-chatty PyGAM
     original = sys.stdout
-    sys.stdout = open('file', 'w')
+    sys.stdout = open('dummy-stdout-file', 'w')
 
     layer_names = params.get('layer_names')
     exceedance_threshold = params.get('exceedance_threshold')
