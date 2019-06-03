@@ -2,10 +2,17 @@ FROM jonduckworthdg/geopandas-base
 
 RUN apt-get update && apt-get install -y r-base
 
+RUN apt-get install curl -y \
+    && echo "Pulling watchdog binary from Github." \
+    && curl -sSL https://github.com/openfaas/faas/releases/download/0.9.14/fwatchdog > /usr/bin/fwatchdog \
+    && chmod +x /usr/bin/fwatchdog \
+    && cp /usr/bin/fwatchdog /home/app \
+    && apt-get remove curl -y
+
 RUN mkdir -p /app
 
-COPY ./fwatchdog /usr/bin
-RUN chmod +x /usr/bin/fwatchdog
+# COPY ./fwatchdog /usr/bin
+# RUN chmod +x /usr/bin/fwatchdog
 
 WORKDIR /app
 
@@ -16,15 +23,17 @@ COPY index.py .
 COPY config.py .
 COPY preprocess_helpers.py .
 COPY function function
+RUN pip install -r function/requirements.txt
+
 
 # Populate example here - i.e. "cat", "sha512sum" or "node index.js"
 ENV fprocess="python index.py"
 # Set to true to see request in function logs
-# ENV combine_output='false'
-# ENV write_debug="true"
-# ENV write_timeout=0
-# ENV read_timeout=0
-# ENV exec_timeout=0
+ENV combine_output='false'
+ENV write_debug="true"
+ENV write_timeout=0
+ENV read_timeout=0
+ENV exec_timeout=0
 
 EXPOSE 8080
 

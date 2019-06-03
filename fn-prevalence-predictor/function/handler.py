@@ -16,7 +16,7 @@ def run_function(params: dict):
 
     # redirecting STDOUT to avoid over-chatty PyGAM
     original = sys.stdout
-    sys.stdout = open('dummy-stdout-file', 'w')
+    sys.stdout = open('dummy-stdout-file', 'w') # replace with redirect to STDERR
 
     layer_names = params.get('layer_names')
     exceedance_threshold = params.get('exceedance_threshold')
@@ -97,4 +97,5 @@ def run_function(params: dict):
     # Restore STDOUT
     sys.stdout = original
 
-    return response.get('point_data')
+    result = response.get('point_data')
+    return result

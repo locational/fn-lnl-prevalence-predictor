@@ -43,6 +43,8 @@ def handle_success(result):
 
 if __name__ == "__main__":
 
+    # Setup server, listen for POST on port 8080
+
     try:
         # Get and parse params
         params = get_params_from_stdin()
@@ -51,7 +53,11 @@ if __name__ == "__main__":
         preprocess_params.preprocess(params)
 
         # Run!
+        # redirect stdout to stderr (for logging)
+        print("Some log message") --> STDOUT (redirected to STDERR)
+        eprint("Error of some kind") --> STDERR
         function_response = handler.run_function(params)
+        # restore stdout
         handle_success(function_response)
 
     except JSONDecodeError as e:
