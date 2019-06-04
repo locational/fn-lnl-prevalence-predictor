@@ -54,8 +54,8 @@ if __name__ == "__main__":
 
         # Run!
         # redirect stdout to stderr (for logging)
-        print("Some log message") --> STDOUT (redirected to STDERR)
-        eprint("Error of some kind") --> STDERR
+        # print("Some log message") #--> STDOUT (redirected to STDERR)
+        # eprint("Error of some kind") #--> STDERR
         function_response = handler.run_function(params)
         # restore stdout
         handle_success(function_response)
