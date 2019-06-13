@@ -38,7 +38,8 @@ def run_function(params: dict):
     #
 
     # Drop NA coordinates
-    input_data.dropna(axis=0, subset=['lng', 'lat'])
+    # TODO: Check if Geopandas allows creating of a GeoDataFrame if some of the geoms are empty - would be a separate issue of checking params if not
+    # input_data.dropna(axis=0, subset=['lng', 'lat'])
 
     # Find covariates
     if layer_names is not None:
