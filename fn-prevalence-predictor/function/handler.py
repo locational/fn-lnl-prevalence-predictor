@@ -22,14 +22,16 @@ def run_function(params: dict):
     layer_names = params.get('layer_names')
     exceedance_threshold = params.get('exceedance_threshold')
     point_data = params.get('point_data')
-    input_data = disarm_gears.util.geojson_decoder_1(point_data)
+    input_data = gp.GeoDataFrame.from_features(point_data['features'])
 
     # Add id column if it is not provided
     if 'id' not in input_data.columns:
         input_data['id'] = list(range(input_data.length))
 
     # Make id's a string
+    # TODO: do not mutate incoming data, ideally leave any incoming `id` as they are passed in
     input_data.loc[:, 'id'] = [str(i) for i in input_data.id]
+    # TODO: Check that provided ids are unique
 
     #
     # 2. Process
