@@ -32,17 +32,13 @@ def run_function(params: dict):
     # TODO: Fix this hack, use GeoPandas DataFrame throughout (except for pandas2ri.DataFrame)
     input_data = pd.DataFrame(gdf[[col for col in gdf.columns if col != gdf._geometry_column_name]])
 
-    # Add id column if it is not provided
-    # if 'id' not in input_data.columns:
-    #     input_data['id'] = list(range(input_data.length))
-    # TODO: Suggest making a custom hard-to-collide `id` for internal use, and remove before returning
+    # Use some unlikely to collide column name
     id_column_name = 'hard_to_collide_id'
     input_data[id_column_name] = list(range(len(input_data)))
 
     # Make id's a string
-    # TODO: do not mutate incoming data, ideally leave any incoming `id` as they are passed in
-    input_data.loc[:, 'hard_to_collide_id'] = [str(i) for i in input_data.hard_to_collide_id]
-    # TODO: Check that provided ids are unique
+    # FIXME: Still needs to be a string?
+    input_data.loc[:, id_column_name] = [str(i) for i in input_data[id_column_name]]
 
     #
     # 2. Process
@@ -50,20 +46,20 @@ def run_function(params: dict):
 
     # Drop NA coordinates
     # TODO: Check if Geopandas allows creating of a GeoDataFrame if some of the geoms are empty - would be a separate issue of checking params if not
-    # input_data.dropna(axis=0, subset=['lng', 'lat'])
+    input_data.dropna(axis=0, subset=['lng', 'lat'])
 
     # Find covariates
     if layer_names is not None:
         # Call fn-covariate-extractor
         open_faas_link = 'http://faas.srv.disarm.io/function/fn-covariate-extractor'
-        covs_request = disarm_gears.util.geojson_encoder_3(input_data, fields=['hard_to_collide_id'], layer_names=layer_names, dumps=True)
+        covs_request = disarm_gears.util.geojson_encoder_3(input_data, fields=[id_column_name], layer_names=layer_names, dumps=True)
         covs_response = requests.post(open_faas_link, data=covs_request)
         # TODO? assert covs_response.json()['type'] == 'success'
         # TODO define how to handle NA entries in the covariates
 
         # Merge output into input_data
         covs_data = disarm_gears.util.geojson_decoder_1(covs_response.json()['result'])
-        input_data = pd.merge(input_data, covs_data[['hard_to_collide_id'] + layer_names], how='left', left_on=['hard_to_collide_id'], right_on=['hard_to_collide_id'])
+        input_data = pd.merge(input_data, covs_data[[id_column_name] + layer_names], how='left', left_on=[id_column_name], right_on=[id_column_name])
         #for li in layer_names:
         #    input_data[li] = covs_data[li]
 
