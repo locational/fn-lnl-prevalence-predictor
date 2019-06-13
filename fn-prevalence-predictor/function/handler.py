@@ -1,7 +1,9 @@
+import json
 import sys
 
 import numpy as np
 import pandas as pd
+import geopandas as gp
 import requests
 import disarm_gears
 
@@ -21,38 +23,52 @@ def run_function(params: dict):
     layer_names = params.get('layer_names')
     exceedance_threshold = params.get('exceedance_threshold')
     point_data = params.get('point_data')
-    input_data = disarm_gears.util.geojson_decoder_1(point_data)
+
+    # Make a GeoPandas DataFrame
+    gdf = gp.GeoDataFrame.from_features(point_data['features'])
+    # TODO: Stop faking the lat/lng - need to fix the mgcv formula below, and also the failing pandas2ri.DataFrame
+    gdf['lat'] = gdf.geometry.y
+    gdf['lng'] = gdf.geometry.x
+    # TODO: Fix this hack, use GeoPandas DataFrame throughout (except for pandas2ri.DataFrame)
+    input_data = pd.DataFrame(gdf[[col for col in gdf.columns if col != gdf._geometry_column_name]])
 
     # Add id column if it is not provided
-    if 'id' not in input_data.columns:
-        input_data['id'] = list(range(input_data.shape[0]))
+    # if 'id' not in input_data.columns:
+    #     input_data['id'] = list(range(input_data.length))
+    # TODO: Suggest making a custom hard-to-collide `id` for internal use, and remove before returning
+    id_column_name = 'hard_to_collide_id'
+    input_data[id_column_name] = list(range(len(input_data)))
 
     # Make id's a string
-    input_data.loc[:, 'id'] = [str(i) for i in input_data.id]
+    # TODO: do not mutate incoming data, ideally leave any incoming `id` as they are passed in
+    input_data.loc[:, 'hard_to_collide_id'] = [str(i) for i in input_data.hard_to_collide_id]
+    # TODO: Check that provided ids are unique
 
     #
     # 2. Process
     #
 
     # Drop NA coordinates
-    input_data.dropna(axis=0, subset=['lng', 'lat'])
+    # TODO: Check if Geopandas allows creating of a GeoDataFrame if some of the geoms are empty - would be a separate issue of checking params if not
+    # input_data.dropna(axis=0, subset=['lng', 'lat'])
 
     # Find covariates
     if layer_names is not None:
         # Call fn-covariate-extractor
         open_faas_link = 'http://faas.srv.disarm.io/function/fn-covariate-extractor'
-        covs_request = disarm_gears.util.geojson_encoder_3(input_data, fields=['id'], layer_names=layer_names, dumps=True)
+        covs_request = disarm_gears.util.geojson_encoder_3(input_data, fields=['hard_to_collide_id'], layer_names=layer_names, dumps=True)
         covs_response = requests.post(open_faas_link, data=covs_request)
         # TODO? assert covs_response.json()['type'] == 'success'
         # TODO define how to handle NA entries in the covariates
 
         # Merge output into input_data
         covs_data = disarm_gears.util.geojson_decoder_1(covs_response.json()['result'])
-        input_data = pd.merge(input_data, covs_data[['id'] + layer_names], how='left', left_on=['id'], right_on=['id'])
+        input_data = pd.merge(input_data, covs_data[['hard_to_collide_id'] + layer_names], how='left', left_on=['hard_to_collide_id'], right_on=['hard_to_collide_id'])
         #for li in layer_names:
         #    input_data[li] = covs_data[li]
 
     # Define mgcv model
+    # TODO: Fix formula to use GeoPandas `geometry` column (e.g. `geometry.x`?)
     gam_formula = "cbind(n_positive, n_trials - n_positive) ~ te(lng, lat, bs='gp', m=c(2), k=-1)"
     if layer_names is not None:
         gam_formula = [gam_formula] + ['s(%s)' % i for i in layer_names]
@@ -86,16 +102,11 @@ def run_function(params: dict):
     input_data['exceedance_probability'] = ex_prob
     input_data['exceedance_uncertainty'] = ex_uncert
 
-    response = disarm_gears.util.geojson_encoder_2(dataframe=input_data,
-                                                   fields=['id',
-                                                           'prevalence_prediction',
-                                                           'prevalence_bci_width',
-                                                           'exceedance_probability',
-                                                           'exceedance_uncertainty'],
-                                                   dumps=False)
+    output_gdf = gp.GeoDataFrame(input_data, geometry=gp.points_from_xy(input_data.lng, input_data.lat))
+    slimmer_gdf = output_gdf.drop(['lat', 'lng', id_column_name], axis=1)
 
     # Restore STDOUT
     sys.stdout = original
 
-    result = response.get('point_data')
-    return result
+    # return response.get('point_data')
+    return json.loads(slimmer_gdf.to_json())
