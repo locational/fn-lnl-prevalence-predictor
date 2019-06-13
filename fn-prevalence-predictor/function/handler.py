@@ -1,5 +1,6 @@
 import json
 import sys
+import uuid
 
 import numpy as np
 import pandas as pd
@@ -32,8 +33,10 @@ def run_function(params: dict):
     # TODO: Fix this hack, use GeoPandas DataFrame throughout (except for pandas2ri.DataFrame)
     input_data = pd.DataFrame(gdf[[col for col in gdf.columns if col != gdf._geometry_column_name]])
 
-    # Use some unlikely to collide column name
-    id_column_name = 'hard_to_collide_id'
+    # Use some ~~unlikely~~ IMPOSSIBLE to collide column name
+    id_column_name = f'{uuid.uuid4().int}_hard_to_collide_id'
+    if id_column_name in input_data.colums:
+        id_column_name = f'seriously_{uuid.uuid4().int}_hard_to_collide_id'
     input_data[id_column_name] = list(range(len(input_data)))
 
     # Make id's a string
