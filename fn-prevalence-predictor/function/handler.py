@@ -2,6 +2,7 @@ import sys
 
 import numpy as np
 import pandas as pd
+import geopandas as gp
 import requests
 import disarm_gears
 
@@ -25,7 +26,7 @@ def run_function(params: dict):
 
     # Add id column if it is not provided
     if 'id' not in input_data.columns:
-        input_data['id'] = list(range(input_data.shape[0]))
+        input_data['id'] = list(range(input_data.length))
 
     # Make id's a string
     input_data.loc[:, 'id'] = [str(i) for i in input_data.id]
