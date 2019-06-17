@@ -35,7 +35,7 @@ def run_function(params: dict):
 
     # Use some ~~unlikely~~ IMPOSSIBLE to collide column name
     id_column_name = f'{uuid.uuid4().int}_hard_to_collide_id'
-    if id_column_name in input_data.colums:
+    if id_column_name in input_data.columns:
         id_column_name = f'seriously_{uuid.uuid4().int}_hard_to_collide_id'
     input_data[id_column_name] = list(range(len(input_data)))
 
