@@ -30,18 +30,16 @@ def run_function(params: dict):
     # TODO: Stop faking the lat/lng - need to fix the mgcv formula below, and also the failing pandas2ri.DataFrame
     gdf['lat'] = gdf.geometry.y
     gdf['lng'] = gdf.geometry.x
+
+    # Use some ~~unlikely~~ IMPOSSIBLE to collide column name
+    id_column_name = f'ID{uuid.uuid4().int}_hard_to_collide_id'
+    if id_column_name in gdf.columns:
+        id_column_name = f'ID_seriously_{uuid.uuid4().int}_hard_to_collide_id'
+    gdf[id_column_name] = list(range(len(gdf)))
+
     # TODO: Fix this hack, use GeoPandas DataFrame throughout (except for pandas2ri.DataFrame)
     input_data = pd.DataFrame(gdf[[col for col in gdf.columns if col != gdf._geometry_column_name]])
 
-    # Use some ~~unlikely~~ IMPOSSIBLE to collide column name
-    id_column_name = f'{uuid.uuid4().int}_hard_to_collide_id'
-    if id_column_name in input_data.columns:
-        id_column_name = f'seriously_{uuid.uuid4().int}_hard_to_collide_id'
-    input_data[id_column_name] = list(range(len(input_data)))
-
-    # Make id's a string
-    # FIXME: Still needs to be a string?
-    input_data.loc[:, id_column_name] = [str(i) for i in input_data[id_column_name]]
 
     #
     # 2. Process
@@ -55,16 +53,25 @@ def run_function(params: dict):
     if layer_names is not None:
         # Call fn-covariate-extractor
         open_faas_link = 'http://faas.srv.disarm.io/function/fn-covariate-extractor'
-        covs_request = disarm_gears.util.geojson_encoder_3(input_data, fields=[id_column_name], layer_names=layer_names, dumps=True)
-        covs_response = requests.post(open_faas_link, data=covs_request)
-        # TODO? assert covs_response.json()['type'] == 'success'
+        just_id_and_geom = gdf.filter(['geometry', id_column_name])
+        req_options = {
+            'points': json.loads(just_id_and_geom.to_json()),  # TODO: Need to to-and-from JSON here?
+            'layer_names': layer_names
+        }
+        covs_response = requests.post(open_faas_link, json=req_options)
         # TODO define how to handle NA entries in the covariates
 
+        covs_response_json = covs_response.json()
+        if covs_response_json['type'] == 'error':
+            msg = "Problem with remote function call: " + covs_response_json['result']
+            raise Exception(msg)
         # Merge output into input_data
-        covs_data = disarm_gears.util.geojson_decoder_1(covs_response.json()['result'])
-        input_data = pd.merge(input_data, covs_data[[id_column_name] + layer_names], how='left', left_on=[id_column_name], right_on=[id_column_name])
-        #for li in layer_names:
-        #    input_data[li] = covs_data[li]
+        # covs_data = disarm_gears.util.geojson_decoder_1(covs_response.json()['result'])
+        covs_result = covs_response.json()['result']
+        covs_gdf = gp.GeoDataFrame.from_features(covs_result['features'])
+        covs_data = pd.DataFrame(covs_gdf[[col for col in covs_gdf.columns if col != covs_gdf._geometry_column_name]])
+        covs_data.drop('id', axis = 1) # TODO: Get fn-cov-extr to not return an `id` col
+        input_data = pd.merge(input_data, covs_data, how='left', left_on=[id_column_name], right_on=[id_column_name])
 
     # Define mgcv model
     # TODO: Fix formula to use GeoPandas `geometry` column (e.g. `geometry.x`?)
