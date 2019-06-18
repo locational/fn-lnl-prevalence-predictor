@@ -70,7 +70,7 @@ def run_function(params: dict):
         covs_result = covs_response.json()['result']
         covs_gdf = gp.GeoDataFrame.from_features(covs_result['features'])
         covs_data = pd.DataFrame(covs_gdf[[col for col in covs_gdf.columns if col != covs_gdf._geometry_column_name]])
-        covs_data.drop('id', axis = 1) # TODO: Get fn-cov-extr to not return an `id` col
+        covs_data = covs_data.drop('id', axis = 1) # TODO: Get fn-cov-extr to not return an `id` col
         input_data = pd.merge(input_data, covs_data, how='left', left_on=[id_column_name], right_on=[id_column_name])
 
     # Define mgcv model
