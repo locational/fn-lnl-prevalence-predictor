@@ -1,4 +1,4 @@
-FROM disarm/geopandas-r-base
+FROM disarm/geopandas-r-base:1.0.0
 
 RUN mkdir -p /app
 
