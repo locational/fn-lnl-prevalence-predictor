@@ -1,6 +1,4 @@
-FROM jonduckworthdg/geopandas-base
-
-RUN apt-get update && apt-get install -y r-base
+FROM disarm/geopandas-r-base:1.0.0
 
 RUN mkdir -p /app
 
