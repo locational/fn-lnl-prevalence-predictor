@@ -1,6 +1,4 @@
-FROM disarm/geopandas-base
-
-RUN apt-get update && apt-get install -y r-base
+FROM disarm/geopandas-r-base:1.0.0
 
 RUN apt-get install curl -y \
     && echo "Pulling watchdog binary from Github." \
