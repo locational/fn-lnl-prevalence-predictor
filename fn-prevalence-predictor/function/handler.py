@@ -77,7 +77,7 @@ def run_function(params: dict):
     # TODO: Fix formula to use GeoPandas `geometry` column (e.g. `geometry.x`?)
     gam_formula = "cbind(n_positive, n_trials - n_positive) ~ te(lng, lat, bs='gp', m=c(2), k=-1)"
     if layer_names is not None:
-        gam_formula = [gam_formula] + ['s(%s)' % i for i in layer_names]
+        gam_formula = [gam_formula] + ['%s' % i for i in layer_names]
         gam_formula = '+'.join(gam_formula)
 
     # Fit model and make predictions/simulations
