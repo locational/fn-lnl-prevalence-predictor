@@ -8,8 +8,6 @@ import geopandas as gp
 import requests
 import disarm_gears
 
-from rpy2.rinterface import RRuntimeError
-
 
 def run_function(params: dict):
     #
@@ -77,20 +75,13 @@ def run_function(params: dict):
 
     # Define and fit mgcv model
     # TODO: Fix formula to use GeoPandas `geometry` column (e.g. `geometry.x`?)
-    train_data = input_data.dropna(axis=0)
-    try:
-        gam_formula = "cbind(n_positive, n_trials - n_positive) ~ te(lng, lat, bs='gp', m=c(2), k=-1)"
-        if layer_names is not None:
-            gam_formula = [gam_formula] + [f's({i}, k=-1)' for i in layer_names]
-            gam_formula = '+'.join(gam_formula)
-        gam = disarm_gears.r_plugins.mgcv_fit(gam_formula, family='binomial', data=train_data)
-    except RRuntimeError:
-        gam_formula = "cbind(n_positive, n_trials - n_positive) ~ te(lng, lat, bs='gp', m=c(2), k=-1)"
-        if layer_names is not None:
-            gam_formula = [gam_formula] + [f'{i}' for i in layer_names]
-            gam_formula = '+'.join(gam_formula)
-        gam = disarm_gears.r_plugins.mgcv_fit(gam_formula, family='binomial', data=train_data)
+    gam_formula = "cbind(n_positive, n_trials - n_positive) ~ te(lng, lat, bs='gp', m=c(2), k=-1)"
+    if layer_names is not None:
+        gam_formula = [gam_formula] + [f'{i}' for i in layer_names]
+        gam_formula = '+'.join(gam_formula)
 
+    train_data = input_data.dropna(axis=0)
+    gam = disarm_gears.r_plugins.mgcv_fit(gam_formula, family='binomial', data=train_data)
 
     # Make predictions/simulations
     gam_pred = disarm_gears.r_plugins.mgcv_predict(gam, data=input_data, response_type='response')
