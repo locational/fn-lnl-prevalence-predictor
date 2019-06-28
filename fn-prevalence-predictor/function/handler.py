@@ -47,7 +47,7 @@ def run_function(params: dict):
 
     # Drop NA coordinates
     # TODO: Check if Geopandas allows creating of a GeoDataFrame if some of the geoms are empty - would be a separate issue of checking params if not
-    input_data.dropna(axis=0, subset=['lng', 'lat']) # TODO: this does nothing: should be catching return
+    #input_data.dropna(axis=0, subset=['lng', 'lat']) # TODO: this does nothing: should be catching return
 
     # Find covariates
     if layer_names is not None:
@@ -73,16 +73,17 @@ def run_function(params: dict):
         covs_data = covs_data.drop('id', axis = 1) # TODO: Get fn-cov-extr to not return an `id` col
         input_data = pd.merge(input_data, covs_data, how='left', left_on=[id_column_name], right_on=[id_column_name])
 
-    # Define mgcv model
+    # Define and fit mgcv model
     # TODO: Fix formula to use GeoPandas `geometry` column (e.g. `geometry.x`?)
     gam_formula = "cbind(n_positive, n_trials - n_positive) ~ te(lng, lat, bs='gp', m=c(2), k=-1)"
     if layer_names is not None:
-        gam_formula = [gam_formula] + ['s(%s)' % i for i in layer_names]
+        gam_formula = [gam_formula] + [f'{i}' for i in layer_names]
         gam_formula = '+'.join(gam_formula)
 
-    # Fit model and make predictions/simulations
     train_data = input_data.dropna(axis=0)
     gam = disarm_gears.r_plugins.mgcv_fit(gam_formula, family='binomial', data=train_data)
+
+    # Make predictions/simulations
     gam_pred = disarm_gears.r_plugins.mgcv_predict(gam, data=input_data, response_type='response')
     link_sims = disarm_gears.r_plugins.mgcv_posterior_samples(gam, data=input_data, n_samples=200,
                                                               response_type='link')

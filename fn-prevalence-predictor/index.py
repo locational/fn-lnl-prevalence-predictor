@@ -70,8 +70,8 @@ if __name__ == "__main__":
     # Bare exceptions are not recommended - see https://www.python.org/dev/peps/pep-0008/#programming-recommendations
     # We're using one to make sure that _any_ errors are packaged and returned to the calling server,
     # not just logged at the function gateway
-    # except Exception as err:
-    #     handle_error(err, "Unknown error")
+    except Exception as err:
+        handle_error(err, "Unknown error")
 
     finally:
         shutil.rmtree(config.TEMP)
