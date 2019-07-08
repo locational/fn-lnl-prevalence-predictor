@@ -19,19 +19,24 @@ def get_params_from_stdin() -> dict:
     return json.loads(buf)
 
 
-def handle_error(error, message='Unknown error, please ask the admins to check container logs for more info'):
-    # This will be written to container logs
-    sys.stderr.write(f'Error from function: {str(error)}\n\n')
-
+def handle_error(error, message=None):
     # This will be sent back to caller/server
     start = "Error from function: "
 
-    if type(error) is not ValueError:
-        result = start + str(message)
-    else:
+    # This will be written to container logs
+    sys.stderr.write(f'{start}: {str(error)}\n\n')
+
+    if type(error) is ValueError:
         result = start + str(error)
-    print(json.dumps({"function_status": "error",
-                      "result": result}))
+    
+    else:
+        if message is None:
+            # TODO: Send back more limited error message to user
+            result = start + str(error)
+        else:
+            result = start + message
+    
+    print(json.dumps({"function_status": "error", "result": result}))
 
 
 # Please give me content that JSON-dumpable:
@@ -57,7 +62,8 @@ if __name__ == "__main__":
         # print("Some log message") #--> STDOUT (redirected to STDERR)
         # eprint("Error of some kind") #--> STDERR
         function_response = handler.run_function(params)
-        # restore stdout
+
+        # Handle success
         handle_success(function_response)
 
     except JSONDecodeError as e:
@@ -71,7 +77,7 @@ if __name__ == "__main__":
     # We're using one to make sure that _any_ errors are packaged and returned to the calling server,
     # not just logged at the function gateway
     except Exception as err:
-        handle_error(err, "Unknown error")
+        handle_error(err)
 
     finally:
         shutil.rmtree(config.TEMP)
