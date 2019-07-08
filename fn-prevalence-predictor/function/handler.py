@@ -17,10 +17,6 @@ def run_function(params: dict):
     # Set random seed
     np.random.seed(1000)
 
-    # redirecting STDOUT to avoid over-chatty PyGAM
-    original = sys.stdout
-    sys.stdout = open('dummy-stdout-file', 'w')
-
     layer_names = params.get('layer_names')
     exceedance_threshold = params.get('exceedance_threshold')
     point_data = params.get('point_data')
@@ -104,6 +100,7 @@ def run_function(params: dict):
     #
     # 3. Package output
     #
+
     input_data['prevalence_prediction'] = gam_pred
     input_data['prevalence_bci_width'] = bci[1] - bci[0]
     input_data['exceedance_probability'] = ex_prob
@@ -111,9 +108,6 @@ def run_function(params: dict):
 
     output_gdf = gp.GeoDataFrame(input_data, geometry=gp.points_from_xy(input_data.lng, input_data.lat))
     slimmer_gdf = output_gdf.drop(['lat', 'lng', id_column_name], axis=1)
-
-    # Restore STDOUT
-    sys.stdout = original
 
     # return response.get('point_data')
     return json.loads(slimmer_gdf.to_json())
