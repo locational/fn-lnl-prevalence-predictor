@@ -1,4 +1,6 @@
-# Prevalence predictor
+# fn-prevalence-predictor
+
+Forked from https://github.com/disarm-platform/fn-prevalence-predictor
 
 Give us a bunch of GeoJSON points with numbers examined and numbers positive, as well as a GeoJSON of prediction points, and we'll predict the probability of occurrence at each prediction point.
 
