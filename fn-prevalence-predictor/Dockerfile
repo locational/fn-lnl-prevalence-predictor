@@ -28,7 +28,7 @@ RUN pip install -r function/requirements.txt
 ENV fprocess="python index.py"
 # Set to true to see request in function logs
 ENV combine_output='false'
-ENV write_debug="true"
+ENV write_debug="false"
 ENV write_timeout=0
 ENV read_timeout=0
 ENV exec_timeout=0
