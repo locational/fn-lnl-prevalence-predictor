@@ -23,9 +23,6 @@ def run_function(params: dict):
 
     # Make a GeoPandas DataFrame
     gdf = gp.GeoDataFrame.from_features(point_data['features'])
-    # TODO: Stop faking the lat/lng - need to fix the mgcv formula below, and also the failing pandas2ri.DataFrame
-    gdf['lat'] = gdf.geometry.y
-    gdf['lng'] = gdf.geometry.x
 
     # Use some ~~unlikely~~ IMPOSSIBLE to collide column name
     id_column_name = f'ID{uuid.uuid4().int}_hard_to_collide_id'
@@ -34,7 +31,10 @@ def run_function(params: dict):
     gdf[id_column_name] = list(range(len(gdf)))
 
     # TODO: Fix this hack, use GeoPandas DataFrame throughout (except for pandas2ri.DataFrame)
-    input_data = pd.DataFrame(gdf[[col for col in gdf.columns if col != gdf._geometry_column_name]])
+    #input_data = pd.DataFrame(gdf[[col for col in gdf.columns if col != gdf._geometry_column_name]])
+    input_data = pd.DataFrame(gdf[[col for col in ['n_positive', 'n_trials', id_column_name]]])
+    input_data['lat'] = gdf.geometry.y
+    input_data['lng'] = gdf.geometry.x
 
 
     #
