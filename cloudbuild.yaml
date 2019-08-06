@@ -16,7 +16,7 @@ steps:
         '--image',
         'gcr.io/$PROJECT_ID/fn-prevalence-predictor',
         '--region',
-        'europe-west1',
+        'us-central1',
         '--platform',
         'managed',
         '--quiet',
