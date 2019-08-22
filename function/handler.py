@@ -31,8 +31,8 @@ def run_function(params: dict):
     gdf[id_column_name] = list(range(len(gdf)))
 
     # TODO: Fix this hack, use GeoPandas DataFrame throughout (except for pandas2ri.DataFrame)
-    #input_data = pd.DataFrame(gdf[[col for col in gdf.columns if col != gdf._geometry_column_name]])
-    input_data = pd.DataFrame(gdf[[col for col in ['n_positive', 'n_trials', id_column_name]]])
+    input_data = pd.DataFrame(gdf)
+    input_data = input_data.drop('geometry', axis = 1)
     input_data['lat'] = gdf.geometry.y
     input_data['lng'] = gdf.geometry.x
 
