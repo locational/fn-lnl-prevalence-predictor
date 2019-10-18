@@ -25,7 +25,7 @@ A nested JSON object containing:
 
 `point_data` {GeoJSON FeatureCollection} with the following fields: 
 - `id` - as defined by user or 1:n (where n is the number of Features in the FeatureCollection)
-- `prevalence_prediction` - best-guess (probability of occurrence (0-1 scale))
-- `prevalence_bci_width` - difference between upper 97.5% and lower 2.25% quantiles
-- `exceedance_probability` - Only exists if `exceedance_threshold` provided
-- `exceedance_uncertainty` - Only exists if `exceedance_threshold` provided
+- `prediction` - best-guess (probability of occurrence (0-1 scale))
+- `bci_width` - difference between upper 97.5% and lower 2.25% quantiles
+- `exceedance_probability` - Value only set if `exceedance_threshold` provided
+- `exceedance_uncertainty` - Value only set if `exceedance_threshold` provided

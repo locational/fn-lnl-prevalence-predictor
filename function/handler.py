@@ -31,8 +31,8 @@ def run_function(params: dict):
     gdf[id_column_name] = list(range(len(gdf)))
 
     # TODO: Fix this hack, use GeoPandas DataFrame throughout (except for pandas2ri.DataFrame)
-    #input_data = pd.DataFrame(gdf[[col for col in gdf.columns if col != gdf._geometry_column_name]])
-    input_data = pd.DataFrame(gdf[[col for col in ['n_positive', 'n_trials', id_column_name]]])
+    input_data = pd.DataFrame(gdf)
+    input_data = input_data.drop('geometry', axis = 1)
     input_data['lat'] = gdf.geometry.y
     input_data['lng'] = gdf.geometry.x
 
@@ -101,8 +101,8 @@ def run_function(params: dict):
     # 3. Package output
     #
 
-    input_data['prevalence_prediction'] = gam_pred
-    input_data['prevalence_bci_width'] = bci[1] - bci[0]
+    input_data['prediction'] = gam_pred
+    input_data['bci_width'] = bci[1] - bci[0]
     input_data['exceedance_probability'] = ex_prob
     input_data['exceedance_uncertainty'] = ex_uncert
 
