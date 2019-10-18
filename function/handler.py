@@ -101,8 +101,8 @@ def run_function(params: dict):
     # 3. Package output
     #
 
-    input_data['prevalence_prediction'] = gam_pred
-    input_data['prevalence_bci_width'] = bci[1] - bci[0]
+    input_data['prediction'] = gam_pred
+    input_data['bci_width'] = bci[1] - bci[0]
     input_data['exceedance_probability'] = ex_prob
     input_data['exceedance_uncertainty'] = ex_uncert
 
